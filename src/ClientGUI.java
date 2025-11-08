@@ -8,7 +8,7 @@ public class ClientGUI extends JFrame {
     private JLabel questionLabel;
     private JRadioButton[] options;
     private ButtonGroup group;
-    private JButton submitButton;
+    private JButton submitButton, nextButton;
 
     private List<Question> questions;
     private int currentIndex = 0;
@@ -17,6 +17,8 @@ public class ClientGUI extends JFrame {
         setTitle("IsKahoot");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        setSize(new Dimension(500, 300));
+        setLocationRelativeTo(null);
 
         try {
             questions = QuestionLoader.loadFromJson("perguntas.json");
@@ -25,36 +27,92 @@ public class ClientGUI extends JFrame {
             System.exit(1);
         }
 
-        // Mostrar a primeira pergunta
-        Question q = questions.get(currentIndex);
-        questionLabel = new JLabel(q.getQuestion());
-        add(questionLabel, BorderLayout.NORTH);
+        // Painel principal
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        add(mainPanel, BorderLayout.CENTER);
 
-        JPanel optionsPanel = new JPanel(new GridLayout(q.getOptions().size(), 1));
+        questionLabel = new JLabel("", SwingConstants.CENTER);
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        mainPanel.add(questionLabel, BorderLayout.NORTH);
+
+        JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 5, 5));
+        mainPanel.add(optionsPanel, BorderLayout.CENTER);
+
         group = new ButtonGroup();
-        options = new JRadioButton[q.getOptions().size()];
-
-        for (int i = 0; i < q.getOptions().size(); i++) {
-            options[i] = new JRadioButton(q.getOptions().get(i));
+        options = new JRadioButton[4];
+        for (int i = 0; i < 4; i++) {
+            options[i] = new JRadioButton();
             group.add(options[i]);
             optionsPanel.add(options[i]);
         }
 
-        add(optionsPanel, BorderLayout.CENTER);
-
+        JPanel buttonPanel = new JPanel(new FlowLayout());
         submitButton = new JButton("Submeter");
-        submitButton.addActionListener(e -> {
-            for (int i = 0; i < options.length; i++) {
-                if (options[i].isSelected()) {
-                    JOptionPane.showMessageDialog(this, "Respondeste: " + q.getOptions().get(i));
-                    break;
-                }
-            }
-        });
+        nextButton = new JButton("Próxima Pergunta");
+        nextButton.setEnabled(false);
+        buttonPanel.add(submitButton);
+        buttonPanel.add(nextButton);
+        add(buttonPanel, BorderLayout.SOUTH);
 
-        add(submitButton, BorderLayout.SOUTH);
+        // Eventos
+        submitButton.addActionListener(e -> handleSubmit());
+        nextButton.addActionListener(e -> showNextQuestion());
 
-        pack();
+        // Mostrar a primeira pergunta
+        showQuestion(currentIndex);
+
         setVisible(true);
+    }
+
+    private void showQuestion(int index) {
+        if (index >= questions.size()) {
+            JOptionPane.showMessageDialog(this, "Fim do quiz! 🎉");
+            submitButton.setEnabled(false);
+            nextButton.setEnabled(false);
+            return;
+        }
+
+        Question q = questions.get(index);
+        questionLabel.setText((index + 1) + ". " + q.getQuestion());
+
+        for (int i = 0; i < q.getOptions().size(); i++) {
+            options[i].setText(q.getOptions().get(i));
+            options[i].setSelected(false);
+        }
+
+        group.clearSelection();
+        submitButton.setEnabled(true);
+        nextButton.setEnabled(false);
+    }
+
+    private void handleSubmit() {
+        Question q = questions.get(currentIndex);
+        int selected = -1;
+
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].isSelected()) {
+                selected = i + 1; // +1 porque o JSON usa 1-based index
+                break;
+            }
+        }
+
+        if (selected == -1) {
+            JOptionPane.showMessageDialog(this, "Escolhe uma opção primeiro!");
+            return;
+        }
+
+        if (selected == q.getCorrect()) {
+            JOptionPane.showMessageDialog(this, "Correto! +" + q.getPoints() + " pontos");
+        } else {
+            JOptionPane.showMessageDialog(this, "Errado! A resposta certa era: " + q.getOptions().get(q.getCorrect() - 1));
+        }
+
+        submitButton.setEnabled(false);
+        nextButton.setEnabled(true);
+    }
+
+    private void showNextQuestion() {
+        currentIndex++;
+        showQuestion(currentIndex);
     }
 }
