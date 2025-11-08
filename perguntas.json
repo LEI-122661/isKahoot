@@ -1,0 +1,16 @@
+{
+  "questions": [
+    {
+      "question": "O que é uma thread?",
+      "points": 5,
+      "correct": 3,
+      "options": ["Processo", "Aplicação", "Programa", "Processo Ligeiro"]
+    },
+    {
+      "question": "Qual destas opções NÃO é um método bloqueante?",
+      "points": 3,
+      "correct": 2,
+      "options": ["join()", "sleep(<millis>)", "interrupted()", "wait()"]
+    }
+  ]
+}
