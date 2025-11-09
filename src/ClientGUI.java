@@ -1,5 +1,6 @@
 // ClientGUI.java
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.IOException;
 import java.util.List;
@@ -9,9 +10,11 @@ public class ClientGUI extends JFrame {
     private JRadioButton[] options;
     private ButtonGroup group;
     private JButton submitButton, nextButton;
+    private JLabel scoreLabel;
 
     private List<Question> questions;
     private int currentIndex = 0;
+    private int totalScore;
 
     public ClientGUI() {
         setTitle("IsKahoot");
@@ -58,6 +61,15 @@ public class ClientGUI extends JFrame {
         submitButton.addActionListener(e -> handleSubmit());
         nextButton.addActionListener(e -> showNextQuestion());
 
+
+        //SCORE
+        JPanel pointsPanel = new JPanel(new BorderLayout());
+        scoreLabel = new JLabel("Pontos: 0");
+        pointsPanel.setBorder(new EmptyBorder(0, 0, 0, 10));
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        pointsPanel.add(scoreLabel, BorderLayout.CENTER);
+        add(pointsPanel, BorderLayout.EAST);
+
         // Mostrar a primeira pergunta
         showQuestion(currentIndex);
 
@@ -66,7 +78,7 @@ public class ClientGUI extends JFrame {
 
     private void showQuestion(int index) {
         if (index >= questions.size()) {
-            JOptionPane.showMessageDialog(this, "Fim do quiz! 🎉");
+            JOptionPane.showMessageDialog(this, "Fim do quiz! 🎉"+ "\nPontuação final: " + totalScore);
             submitButton.setEnabled(false);
             nextButton.setEnabled(false);
             return;
@@ -81,6 +93,7 @@ public class ClientGUI extends JFrame {
         }
 
         group.clearSelection();
+        setbuttonsEnabled(true);
         submitButton.setEnabled(true);
         nextButton.setEnabled(false);
     }
@@ -102,17 +115,25 @@ public class ClientGUI extends JFrame {
         }
 
         if (selected == q.getCorrect()) {
+            totalScore+= q.getPoints();
+            scoreLabel.setText("Pontos: " + totalScore);
             JOptionPane.showMessageDialog(this, "Correto! +" + q.getPoints() + " pontos");
         } else {
             JOptionPane.showMessageDialog(this, "Errado! A resposta certa era: " + q.getOptions().get(q.getCorrect() - 1));
         }
-
         submitButton.setEnabled(false);
+        setbuttonsEnabled(false);
         nextButton.setEnabled(true);
     }
 
     private void showNextQuestion() {
         currentIndex++;
         showQuestion(currentIndex);
+    }
+
+    private void setbuttonsEnabled(boolean bool){
+        for(JRadioButton rb :options){
+            rb.setEnabled(bool);
+        }
     }
 }

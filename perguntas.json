@@ -3,14 +3,57 @@
     {
       "question": "O que é uma thread?",
       "points": 5,
-      "correct": 3,
+      "correct": 4,
       "options": ["Processo", "Aplicação", "Programa", "Processo Ligeiro"]
     },
     {
       "question": "Qual destas opções NÃO é um método bloqueante?",
       "points": 3,
-      "correct": 2,
+      "correct": 3,
       "options": ["join()", "sleep(<millis>)", "interrupted()", "wait()"]
+    },
+    {
+      "question": "O que acontece se chamarmos run() diretamente em vez de start()?",
+      "points": 4,
+      "correct": 2,
+      "options": ["Cria uma nova thread", "Executa o código no mesmo thread", "Lança uma exceção", "A thread entra em espera"]
+    },
+    {
+      "question": "Qual palavra-chave é usada para impedir que dois threads acedam simultaneamente ao mesmo bloco de código?",
+      "points": 5,
+      "correct": 3,
+      "options": ["private", "volatile", "synchronized", "static"]
+    },
+    {
+      "question": "O que representa o estado WAITING de uma thread?",
+      "points": 4,
+      "correct": 4,
+      "options": ["Thread terminou", "Thread ainda não iniciou", "Thread está pronta para correr", "Thread está à espera de um recurso ou notificação"]
+    },
+    {
+      "question": "Qual destas classes NÃO implementa a interface Runnable?",
+      "points": 3,
+      "correct": 1,
+      "options": ["Thread", "TimerTask", "FutureTask", "RunnableAdapter"]
+    },
+    {
+      "question": "Qual é a função principal do método join()?",
+      "points": 3,
+      "correct": 2,
+      "options": ["Executar várias threads ao mesmo tempo", "Esperar que outra thread termine", "Interromper a execução da thread atual", "Bloquear todas as threads"]
+    },
+    {
+      "question": "O que acontece se duas threads tentarem modificar a mesma variável sem sincronização?",
+      "points": 5,
+      "correct": 3,
+      "options": ["Nada, o Java gere automaticamente", "A variável é bloqueada", "Podem ocorrer condições de corrida", "O compilador impede a execução"]
+    },
+    {
+      "question": "Qual destas opções é verdadeira sobre a interface Runnable?",
+      "points": 4,
+      "correct": 1,
+      "options": ["Define o método run()", "Define o método start()", "Permite pausar threads", "Só pode ser usada com executores"]
     }
+
   ]
 }
