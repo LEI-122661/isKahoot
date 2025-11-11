@@ -1,4 +1,4 @@
-// ClientGUI.java
+package isKahoot;// isKahoot.ClientGUI.java
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -24,7 +24,7 @@ public class ClientGUI extends JFrame {
         setLocationRelativeTo(null);
 
         try {
-            questions = QuestionLoader.loadFromJson("perguntas.json");
+            questions = QuestionLoader.loadFromJson();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar perguntas: " + e.getMessage());
             System.exit(1);
