@@ -3,6 +3,7 @@ package isKahoot;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.security.PublicKey;
 
 public class ClientGUI extends JFrame {
 
@@ -13,17 +14,20 @@ public class ClientGUI extends JFrame {
     private JButton nextButton;
     private JLabel timerLabel;
     private JLabel scoreLabel;
+    private Timer countdownTimer;
+    private int timeLeft;
 
     private AnswerSender answerSender;
     private NextSender nextSender;
 
     private boolean answered;
 
+
     public ClientGUI() {
         setTitle("IsKahoot");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        setSize(new Dimension(520, 320));
+        setSize(new Dimension(500, 300));
         setLocationRelativeTo(null);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10,10));
@@ -40,14 +44,13 @@ public class ClientGUI extends JFrame {
 
         for (int i = 0; i < 4; i++) {
             options[i] = new JRadioButton("");
-            options[i].setFont(new Font("Arial", Font.PLAIN, 14));
+            options[i].setFont(new Font("Arial", Font.BOLD, 14));
             group.add(options[i]);
             centerPanel.add(options[i]);
         }
         mainPanel.add(centerPanel, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new GridLayout(1,4,5,5));
-
         timerLabel = new JLabel("Tempo: --", SwingConstants.CENTER);
 
         submitButton = new JButton("Submeter");
@@ -98,6 +101,31 @@ public class ClientGUI extends JFrame {
         timerLabel.setText("Tempo: " + secondsLeft + "s");
     }
 
+    public void startTimer(int secondsLeft){
+        timeLeft=secondsLeft;
+        updateTimer(timeLeft);
+
+        //timer de outra pergunta ativo?? o tempo vai acabar e passar automaticamente a proxima_??
+        if(countdownTimer!=null){
+            countdownTimer.stop();
+        }
+
+        countdownTimer =new Timer(1000, e -> {
+            timeLeft--;
+            updateTimer(timeLeft);
+
+            if (timeLeft <=0){
+                countdownTimer.stop();
+
+                setOptionsEnabled(false);
+                submitButton.setEnabled(false);
+                nextButton.setEnabled(true);
+            }
+        });
+        countdownTimer.start();
+
+    }
+
     public void showScoreboard(String text) {
         scoreLabel.setText(text);
     }
@@ -123,8 +151,6 @@ public class ClientGUI extends JFrame {
         // bloqueia mudança da resposta
         setOptionsEnabled(false);
         submitButton.setEnabled(false);
-
-        // mas NÃO avança automaticamente
         nextButton.setEnabled(true);
 
         if (answerSender != null) {

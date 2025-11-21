@@ -47,7 +47,7 @@ public class Main2{
                 String[] opts = q.getOptions();
 
                 gui.showQuestion(q.getQuestion(), opts);
-                gui.updateTimer(30);
+                gui.startTimer(30);
             } else {
                 gui.showQuestion("Fim do jogo!", new String[]{"", "", "", ""});
             }
@@ -58,7 +58,7 @@ public class Main2{
         String[] firstOpts = first.getOptions();
 
         gui.showQuestion(first.getQuestion(), firstOpts);
-        gui.updateTimer(30);
+        gui.startTimer(30);
         gui.showScoreboard("Equipa A: 0 | Equipa B: 0");
     }
 }
