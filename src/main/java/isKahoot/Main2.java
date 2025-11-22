@@ -19,7 +19,7 @@ public class Main2{
         teamA.addPlayer("matilde");
 
         Team teamB = new Team("B");
-        teamB.addPlayer("joao");
+        teamB.addPlayer("guilherme");
 
         Map<String, Team> teams = new HashMap<>();
         teams.put("A", teamA);
@@ -59,6 +59,6 @@ public class Main2{
 
         gui.showQuestion(first.getQuestion(), firstOpts);
         gui.startTimer(30);
-        gui.showScoreboard("Equipa A: 0 | Equipa B: 0");
+        gui.showScoreboard("Equipa A: 0  | Equipa B: ");
     }
 }
