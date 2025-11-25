@@ -7,7 +7,7 @@ import java.util.*;
 
 public class QuestionLoader {
 
-    public static List<Question> loadFromJson() throws IOException {
+    public static List<Question> loadFromJson(String s) throws IOException {
         Gson gson = new Gson();
 
         // Carregar ficheiro perguntas.json da pasta resources
