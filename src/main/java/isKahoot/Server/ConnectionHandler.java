@@ -68,5 +68,6 @@ public class ConnectionHandler extends Thread {
     }
 
     public void sendMessage(String msg) {
+        out.println(msg);
     }
 }
