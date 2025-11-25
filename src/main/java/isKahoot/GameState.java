@@ -119,7 +119,7 @@ public class GameState {
     }
 
     /** Placar total atual: teamId -> score total. */
-    public Map<String, Integer> geotalScores() {
+    public Map<String, Integer> getTotalScores() {
         Map<String, Integer> totals = new HashMap<>();
         for (Team t : teams.values()) {
             totals.put(t.getTeamName(), t.getScore());
