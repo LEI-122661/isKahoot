@@ -16,6 +16,7 @@ public class ClientGUI extends JFrame {
     private JLabel scoreLabel;
     private Timer countdownTimer;
     private int timeLeft;
+    private JPanel centerPanel=new JPanel(new GridLayout(4,1,5,5));
 
     private AnswerSender answerSender;
     private NextSender nextSender;
@@ -38,7 +39,7 @@ public class ClientGUI extends JFrame {
         questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
         mainPanel.add(questionLabel, BorderLayout.NORTH);
 
-        JPanel centerPanel = new JPanel(new GridLayout(4,1,5,5));
+        //JPanel centerPanel = new JPanel(new GridLayout(4,1,5,5));
         options = new JRadioButton[4];
         group = new ButtonGroup();
 
@@ -65,6 +66,7 @@ public class ClientGUI extends JFrame {
         bottomPanel.add(submitButton);
         bottomPanel.add(nextButton);
         bottomPanel.add(scoreLabel);
+
 
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -99,6 +101,15 @@ public class ClientGUI extends JFrame {
 
     public void updateTimer(int secondsLeft) {
         timerLabel.setText("Tempo: " + secondsLeft + "s");
+    }
+
+    public void removeButtons(){
+        submitButton.setVisible(false);
+        nextButton.setVisible(false);
+        for (JRadioButton rb : options) {
+            rb.setVisible(false);
+        }
+
     }
 
     public void startTimer(int secondsLeft){

@@ -39,10 +39,18 @@ public class GameState {
         roundActive = true;
     }
 
-    /** Pergunta atual, ou null se acabou. */
+    /**
+     * Pergunta atual, ou null se acabou.
+     */
     public Question getCurrentQuestion() {
-        if (currentIndex >= questions.size()) return null;
-        return questions.get(currentIndex);
+        if (currentIndex >= questions.size()){
+            return null;
+        }
+         return questions.get(currentIndex);
+    }
+
+    public boolean hasMoreQuestions() {
+        return currentIndex < questions.size();
     }
 
     public boolean isRoundActive() {
@@ -111,7 +119,7 @@ public class GameState {
     }
 
     /** Placar total atual: teamId -> score total. */
-    public Map<String, Integer> getTotalScores() {
+    public Map<String, Integer> geotalScores() {
         Map<String, Integer> totals = new HashMap<>();
         for (Team t : teams.values()) {
             totals.put(t.getTeamName(), t.getScore());

@@ -9,7 +9,7 @@ public class Main2{
 
         List<Question> questions;
         try {
-            questions = QuestionLoader.loadFromJson("perguntas.json");
+            questions = QuestionLoader.loadFromJson("quizzes.json");
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -50,6 +50,8 @@ public class Main2{
                 gui.startTimer(30);
             } else {
                 gui.showQuestion("Fim do jogo!", new String[]{"", "", "", ""});
+                gui.removeButtons();
+
             }
         });
 
