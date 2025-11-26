@@ -1,4 +1,4 @@
-package isKahoot;
+package isKahoot.Game;
 
 public interface NextSender {
 
