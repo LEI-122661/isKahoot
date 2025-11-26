@@ -52,7 +52,7 @@ public class GUI extends JFrame {
     public GUI() {
         setTitle("IsKahoot");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(new Dimension(400, 400));
+        setSize(new Dimension(600, 400));
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -178,7 +178,7 @@ public class GUI extends JFrame {
         finalScoreLabel.setFont(new Font("Arial", Font.PLAIN, 28));
         finalScoreLabel.setForeground(TEXT_COLOR);
 
-        JLabel celebrationLabel = new JLabel("🎉 Obrigado por jogar! 🎉", SwingConstants.CENTER);
+        JLabel celebrationLabel = new JLabel("Obrigado por jogar!", SwingConstants.CENTER);
         celebrationLabel.setFont(new Font("Arial", Font.PLAIN, 20));
         celebrationLabel.setForeground(new Color(150, 150, 160));
 
@@ -218,7 +218,7 @@ public class GUI extends JFrame {
 
     private void showQuestion(String questionText, String[] opts) {
         // Usa HTML para word wrap em JLabel
-        questionLabel.setText("<html><body style='width: 600px; text-align: center'>"
+        questionLabel.setText("<html><body style='width: 600px'>"
                 + questionText + "</body></html>");
 
         for (int i = 0; i < 4; i++) {
