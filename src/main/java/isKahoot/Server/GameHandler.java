@@ -1,43 +1,187 @@
 package isKahoot.Server;
 
-import java.util.List;
-public class GameHandler extends Thread {
-    private final List<ConnectionHandler> clients;
+import isKahoot.Game.GameState;
+import isKahoot.Game.Question;
 
-    public GameHandler(List<ConnectionHandler> clients) {
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Thread que gere o ciclo do jogo.
+ * Envia perguntas, aguarda respostas, calcula pontos e avança para a próxima ronda.
+ */
+public class GameHandler extends Thread {
+
+    private final List<ConnectionHandler> clients;
+    private final GameState gameState;
+    private static final long QUESTION_TIMEOUT = 30000; // 30 segundos
+
+    /**
+     * Construtor do GameHandler.
+     *
+     * @param clients lista de clientes conectados
+     * @param gameState estado do jogo
+     */
+    public GameHandler(List<ConnectionHandler> clients, GameState gameState) {
         this.clients = clients;
+        this.gameState = gameState;
     }
 
     @Override
     public void run() {
         try {
-            // 1) LOBBY
-            broadcast("SCREEN:LOBBY");
-            Thread.sleep(5000); // tempo para todos entrarem / verem lobby
+            // Inicia o jogo
+            gameState.startGame();
+            System.out.println("[GAME] Jogo iniciado!");
 
-            // 2) PERGUNTA 1
-            broadcast("SCREEN:QUESTION:1");
-            Thread.sleep(10000); // tempo para responder
+            int questionNumber = 1;
 
-            // 3) RESULTADOS da pergunta 1
-            broadcast("SCREEN:RESULTS:1");
-            Thread.sleep(5000);
+            // Loop para cada pergunta
+            while (gameState.hasMoreQuestions()) {
+                Question q = gameState.getCurrentQuestion();
 
-            // 4) PERGUNTA 2 (exemplo)
-            broadcast("SCREEN:QUESTION:2");
-            Thread.sleep(10000);
+                if (q == null) break;
 
-            // 5) RESULTADOS finais
-            broadcast("SCREEN:FINAL");
-        } catch (InterruptedException e) {
+                System.out.println("[GAME] Pergunta " + questionNumber + ": " + q.getQuestion());
+
+                // 1. Envia a pergunta a todos os clientes
+                sendQuestion(q);
+
+                // 2. Aguarda respostas (com timeout)
+                waitForAnswers();
+
+                // 3. Calcula pontos
+                calculatePoints();
+
+                // 4. Envia placar
+                sendScoreboard();
+
+                // 5. Pequena pausa para o utilizador ver o placar
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+
+                // 6. Avança para próxima pergunta
+                if (!gameState.nextQuestion()) {
+                    break; // Fim do jogo
+                }
+
+                questionNumber++;
+            }
+
+            // Fim do jogo
+            System.out.println("[GAME] Jogo terminado!");
+            sendFinalScoreboard();
+
+        } catch (Exception e) {
+            System.err.println("[GAME] Erro no ciclo do jogo: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    /**
+     * Envia a pergunta a todos os clientes.
+     */
+    private void sendQuestion(Question q) {
+        String questionMsg = "SCREEN:QUESTION:" +
+                q.getQuestion() + "|" +
+                q.getOptions()[0] + "|" +
+                q.getOptions()[1] + "|" +
+                q.getOptions()[2] + "|" +
+                q.getOptions()[3] + "|" +
+                30; // 30 segundos
+
+        broadcast(questionMsg);
+        System.out.println("[GAME] Pergunta enviada a " + clients.size() + " clientes");
+    }
+
+    /**
+     * Aguarda respostas dos clientes com timeout.
+     * Termina quando:
+     * - Todos os jogadores responderam, OU
+     * - O timeout expira
+     */
+    private void waitForAnswers() {
+        long startTime = System.currentTimeMillis();
+        int expectedAnswers = gameState.getActivePlayers();
+
+        System.out.println("[GAME] À espera de " + expectedAnswers + " respostas (timeout: 30s)...");
+
+        while (true) {
+            int answersReceived = gameState.getAnswerCount();
+            long elapsed = System.currentTimeMillis() - startTime;
+
+            if (answersReceived >= expectedAnswers) {
+                System.out.println("[GAME] Todas as respostas recebidas! (" + answersReceived + "/" + expectedAnswers + ")");
+                break;
+            }
+
+            if (elapsed >= QUESTION_TIMEOUT) {
+                System.out.println("[GAME] Timeout! Respostas recebidas: " + answersReceived + "/" + expectedAnswers);
+                break;
+            }
+
+            // Aguarda 500ms antes de verificar novamente
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Calcula os pontos da ronda.
+     */
+    private void calculatePoints() {
+        Map<String, Integer> roundPoints = gameState.endRoundAndComputePoints();
+
+        System.out.println("[GAME] Pontos calculados:");
+        for (Map.Entry<String, Integer> entry : roundPoints.entrySet()) {
+            System.out.println("  - " + entry.getKey() + ": " + entry.getValue() + " pontos");
+        }
+    }
+
+    /**
+     * Envia o placar atualizado a todos os clientes.
+     */
+    private void sendScoreboard() {
+        Map<String, Integer> totalScores = gameState.getTotalScores();
+
+        StringBuilder scoreMsg = new StringBuilder("SCORE:");
+        for (Map.Entry<String, Integer> entry : totalScores.entrySet()) {
+            scoreMsg.append(entry.getKey()).append(":").append(entry.getValue()).append("|");
+        }
+
+        broadcast(scoreMsg.toString());
+        System.out.println("[GAME] Placar enviado: " + scoreMsg);
+    }
+
+    /**
+     * Envia o placar final.
+     */
+    private void sendFinalScoreboard() {
+        Map<String, Integer> totalScores = gameState.getTotalScores();
+
+        StringBuilder finalMsg = new StringBuilder("SCREEN:FINAL:");
+        for (Map.Entry<String, Integer> entry : totalScores.entrySet()) {
+            finalMsg.append(entry.getKey()).append(":").append(entry.getValue()).append("|");
+        }
+
+        broadcast(finalMsg.toString());
+        System.out.println("[GAME] Placar final enviado: " + finalMsg);
+    }
+
+    /**
+     * Envia uma mensagem a todos os clientes.
+     */
     private void broadcast(String msg) {
         for (ConnectionHandler ch : clients) {
             ch.sendMessage(msg);
         }
-        System.out.println("Enviado para todos: " + msg);
     }
 }

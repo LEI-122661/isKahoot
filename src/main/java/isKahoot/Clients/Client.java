@@ -1,133 +1,200 @@
 package isKahoot.Clients;
 
-import isKahoot.GUI;
-import isKahoot.Server.GameHandler;
-import isKahoot.Server.GameServer;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import isKahoot.Game.GUI;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class Client {
-    private Socket connection; // Connection
-    private Scanner in;        // Stream reader
-    private PrintWriter out;   // Stream writer
-    private GUI gui;
 
-    public void runClient() {
+    private Socket connection;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private GUI gui;
+    private String username;
+
+    /**
+     * Inicia o cliente com um username específico.
+     *
+     * @param username nome do jogador (ex: "Client1", "Client2")
+     */
+    public void runClient(String username) {
+        this.username = username;
         try {
             connectToServer();
             setStreams();
+            sendClientInfo(); // Envia informações ao servidor
             createGUI();
             processConnection();
         } catch (IOException e) {
+            System.err.println("[CLIENT " + username + "] Erro: " + e.getMessage());
             e.printStackTrace();
         } finally {
             closeConnection();
         }
     }
 
+    /**
+     * Conecta ao servidor (localhost:12025).
+     */
     private void connectToServer() throws IOException {
-        InetAddress endereco = InetAddress.getByName(null); // localhost
-        System.out.println("Endereco: " + endereco);
-        connection = new Socket(endereco, GameServer.PORT);
-        System.out.println("Socket: " + connection);
+        InetAddress endereco = InetAddress.getByName("localhost"); // localhost
+        System.out.println("[CLIENT " + username + "] Conectando a: " + endereco + ":12025");
+        connection = new Socket(endereco, 12025); // porta do GameServer
+        System.out.println("[CLIENT " + username + "] Conectado com sucesso!");
     }
 
+    /**
+     * Inicializa os streams de comunicação.
+     * IMPORTANTE: Cria ObjectOutputStream ANTES de ObjectInputStream para evitar deadlock!
+     */
     private void setStreams() throws IOException {
-        out = new PrintWriter(
-                new BufferedWriter(
-                        new OutputStreamWriter(connection.getOutputStream())
-                ), true
-        );
-        in = new Scanner(connection.getInputStream());
+        out = new ObjectOutputStream(connection.getOutputStream());
+        out.flush(); // CRÍTICO!
+        in = new ObjectInputStream(connection.getInputStream());
+        System.out.println("[CLIENT " + username + "] Streams inicializados.");
     }
 
+    /**
+     * Envia informações do cliente ao servidor.
+     * O servidor usa isto para auto-atribuir o jogador a uma equipa.
+     */
+    private void sendClientInfo() throws IOException {
+        ClientInfo info = new ClientInfo(
+                username,        // nome: "Client1", "Client2", etc.
+                null,            // gameCode: null (servidor atribui)
+                null             // teamId: null (servidor atribui automaticamente)
+        );
+
+        out.writeObject(info);
+        out.flush();
+        System.out.println("[CLIENT " + username + "] Informações enviadas: " + info);
+    }
+
+    /**
+     * Processa mensagens do servidor.
+     * Bloqueia à espera de mensagens até o servidor encerrar a conexão.
+     */
     private void processConnection() {
-        // ler a mensagem inicial do servidor (se existir)
-        // ler mudanças de tela de acordo com o servidor
-        while (in.hasNextLine()) {
-            String msg = in.nextLine();
-            javax.swing.SwingUtilities.invokeLater(() -> handleServerMessage(msg));
+        try {
+            while (true) {
+                try {
+                    Object msg = in.readObject();
+
+                    if (msg instanceof String) {
+                        String strMsg = (String) msg;
+                        System.out.println("[CLIENT " + username + "] Recebido: " + strMsg);
+
+                        // Processa mensagens de tela
+                        javax.swing.SwingUtilities.invokeLater(() -> handleServerMessage(strMsg));
+                    }
+                } catch (ClassNotFoundException e) {
+                    System.err.println("[CLIENT " + username + "] Tipo de mensagem desconhecida: " + e.getMessage());
+                }
+            }
+        } catch (EOFException e) {
+            System.out.println("[CLIENT " + username + "] Servidor fechou a conexão.");
+        } catch (IOException e) {
+            System.err.println("[CLIENT " + username + "] Erro na comunicação: " + e.getMessage());
         }
     }
 
+    /**
+     * Interpreta mensagens recebidas do servidor e atualiza a GUI.
+     */
     private void handleServerMessage(String msg) {
-            // LIGA AS TELAS DA GUI ÀS MENSAGENS DO SERVIDOR
+        if (msg.startsWith("SCREEN:LOBBY")) {
+            System.out.println("[CLIENT " + username + "] Mostrando LOBBY");
+            gui.showLobby();
 
-            if (msg.startsWith("SCREEN:LOBBY")) {
-                // Mostra tela de lobby (aguardando o início)
-                gui.showLobby();
+        } else if (msg.startsWith("SCREEN:QUESTION:")) {
+            String payload = msg.substring("SCREEN:QUESTION:".length());
+            String[] parts = payload.split("\\|");
 
-            }else if (msg.startsWith("SCREEN:QUESTION:")) {
-                // Mensagem esperada: SCREEN:QUESTION:Texto da pergunta|Opção1|Opção2|Opção3|Opção4|10
-                String payload = msg.substring("SCREEN:QUESTION:".length());
-                String[] parts = payload.split("\\|");
-                if (parts.length >= 6) {
-                    String questionText = parts[0];
-                    String[] opts = new String[]{parts[1], parts[2], parts[3], parts[4]};
-                    int seconds;
-                    // Protege conversão
-                    try {
-                        seconds = Integer.parseInt(parts[5]);
-                    } catch (NumberFormatException e) {
-                        seconds = 10; // Valor default
-                    }
-                    gui.showQuestionScreen(questionText, opts, seconds);
+            if (parts.length >= 6) {
+                String questionText = parts[0];
+                String[] opts = new String[]{parts[1], parts[2], parts[3], parts[4]};
+                int seconds;
+                try {
+                    seconds = Integer.parseInt(parts[5]);
+                } catch (NumberFormatException e) {
+                    seconds = 30;
                 }
 
-            } else if (msg.startsWith("SCREEN:FINAL:")) {
-                // Mensagem final da partida
-                String finalText = msg.substring("SCREEN:FINAL:".length());
-                gui.showFinalScreen(finalText);
-
-            } else if (msg.startsWith("SCORE:")) {
-                // Atualiza a pontuação/placar intermediário
-                String scoreText = msg.substring("SCORE:".length());
-                gui.showScoreboard(scoreText);
-
-            } else if (msg.startsWith("TIME:")) {
-                // Atualiza apenas o timer (caso implementes essa lógica separada)
-                String timeValue = msg.substring("TIME:".length());
-                try {
-                    int seconds = Integer.parseInt(timeValue);
-                    gui.updateTimer(seconds);
-                } catch (NumberFormatException ignored) {}
-
-            } else {
-                // Mensagem não reconhecida (podes mostrar uma popup ou log)
-                System.out.println("Mensagem desconhecida do servidor: " + msg);
+                System.out.println("[CLIENT " + username + "] Mostrando PERGUNTA");
+                gui.showQuestionScreen(questionText, opts, seconds);
             }
-    }
 
-    public void closeConnection() {
-        try {
-            if (connection != null)
-                connection.close();
-            if (in != null)
-                in.close();
-            if (out != null)
-                out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else if (msg.startsWith("SCREEN:FINAL:")) {
+            String finalText = msg.substring("SCREEN:FINAL:".length());
+            System.out.println("[CLIENT " + username + "] Mostrando RESULTADO FINAL");
+            gui.showFinalScreen(finalText);
+
+        } else if (msg.startsWith("SCORE:")) {
+            String scoreText = msg.substring("SCORE:".length());
+            System.out.println("[CLIENT " + username + "] Atualizando pontuação");
+            gui.showScoreboard(scoreText);
+
+        } else if (msg.startsWith("TIME:")) {
+            String timeValue = msg.substring("TIME:".length());
+            try {
+                int seconds = Integer.parseInt(timeValue);
+                gui.updateTimer(seconds);
+            } catch (NumberFormatException ignored) {
+            }
+
+        } else {
+            System.out.println("[CLIENT " + username + "] Mensagem desconhecida: " + msg);
         }
     }
 
+    /**
+     * Cria a GUI do jogo.
+     */
     private void createGUI() {
         javax.swing.SwingUtilities.invokeLater(() -> {
             gui = new GUI();
+            gui.setTitle("IsKahoot - " + username); // título com nome do cliente
 
+            // Callback para enviar resposta
             gui.setAnswerSender(selectedIndex -> {
-                out.println("ANSWER:" + selectedIndex);
+                try {
+                    out.writeObject("ANSWER:" + selectedIndex);
+                    out.flush();
+                } catch (IOException e) {
+                    System.err.println("[CLIENT " + username + "] Erro ao enviar resposta: " + e.getMessage());
+                }
             });
+
+            // Callback para avançar para próxima pergunta
             gui.setNextSender(() -> {
-                out.println("NEXT");
+                try {
+                    out.writeObject("NEXT");
+                    out.flush();
+                } catch (IOException e) {
+                    System.err.println("[CLIENT " + username + "] Erro ao enviar NEXT: " + e.getMessage());
+                }
             });
         });
     }
 
+    /**
+     * Fecha a conexão.
+     */
+    public void closeConnection() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+            System.out.println("[CLIENT " + username + "] Conexão fechada.");
+        } catch (IOException e) {
+            System.err.println("[CLIENT " + username + "] Erro ao fechar conexão: " + e.getMessage());
+        }
+    }
 }
-

@@ -1,5 +1,4 @@
-package isKahoot;// isKahoot.Question.java
-import java.util.List;
+package isKahoot.Game;// isKahoot.Game.Question.java
 
 public class Question {
     private String question;
@@ -14,6 +13,6 @@ public class Question {
 
     @Override
     public String toString() {
-        return "isKahoot.Question{" + question + ", points=" + points + "}";
+        return "isKahoot.Game.Question{" + question + ", points=" + points + "}";
     }
 }
