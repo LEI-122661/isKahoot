@@ -13,11 +13,12 @@ public class GameState {
 
     // teamId -> Team
     private final Map<String, Team> teams;
-
     // username -> optionIndex (resposta desta ronda)
     private final Map<String, Integer> currentAnswers;
+    private final Map<String, Integer> answerBonus = new HashMap<>();
 
     private boolean roundActive;
+    private AnswerSemaphore semaforo;
 
     /**
      * Construtor do GameState.
@@ -46,12 +47,15 @@ public class GameState {
      */
     public void startRound() {
         currentAnswers.clear();
+        answerBonus.clear();
         roundActive = true;
 
         // Reseta a pontuação de ronda em todas as equipas
         for (Team team : teams.values()) {
             team.resetRoundScore();
         }
+        int activePlayers = getActivePlayers();
+        semaforo = new AnswerSemaphore(activePlayers);
     }
 
     /**
@@ -85,13 +89,43 @@ public class GameState {
      * @param username nome do jogador
      * @param optionIndex índice da opção (0-3)
      * @return true se a resposta foi aceite
-     */
+
     public synchronized boolean receiveAnswer(String username, int optionIndex) {
         if (!roundActive) return false;
         if (currentAnswers.containsKey(username)) return false;
 
         currentAnswers.put(username, optionIndex);
         return true;
+    } **/
+
+    public synchronized boolean receiveAnswer(String username, int optionIndex) {
+        if (!roundActive) return false;
+        if (currentAnswers.containsKey(username)) return false;
+
+        //regista resposta
+        currentAnswers.put(username,optionIndex);
+
+        //chama semaforo e obtem multiplicador de pontos
+        int pointsMultiplier = 0;
+        if (semaforo != null){
+            pointsMultiplier= semaforo.acquire();
+        }
+
+        //guardar bonus
+        answerBonus.put(username,pointsMultiplier);
+
+        return true;
+
+
+
+
+    }
+
+    //para gamehandler chamar waitForTimeout do semaforo
+    public void waitForRoundToFinish(long temporizador) throws InterruptedException {
+        if (semaforo != null){
+            semaforo.waitForTimeout(temporizador);
+        }
     }
 
     /**
@@ -116,14 +150,16 @@ public class GameState {
 
             if (team == null) continue;
 
-            int gained = 0;
+            int pointsGained = 0;
             if (answer == correct) {
-                gained = pointsPerCorrect;
-                team.addPoints(gained); // CORRIGIDO: era updateScore
+
+                int bonus=answerBonus.getOrDefault(username,0);
+                pointsGained = pointsPerCorrect * bonus;
+                team.addPoints(pointsGained); // CORRIGIDO: era updateScore
             }
 
             String teamId = team.getTeamId(); // CORRIGIDO: era getTeamName
-            roundPoints.put(teamId, roundPoints.getOrDefault(teamId, 0) + gained);
+            roundPoints.put(teamId, roundPoints.getOrDefault(teamId, 0) + pointsGained);
         }
 
         return roundPoints;

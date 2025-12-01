@@ -105,33 +105,23 @@ public class GameHandler extends Thread {
      * - O timeout expira
      */
     private void waitForAnswers() {
-        long startTime = System.currentTimeMillis();
         int expectedAnswers = gameState.getActivePlayers();
 
-        System.out.println("[GAME] À espera de " + expectedAnswers + " respostas (timeout: 30s)...");
+        System.out.println("[GAME] À espera de " + expectedAnswers + " respostas (timeout: + " + QUESTION_TIMEOUT+" )...");
 
-        while (true) {
-            int answersReceived = gameState.getAnswerCount();
-            long elapsed = System.currentTimeMillis() - startTime;
+        try{
+            //gamsate acorda quando timedout ou todas respostas recebidas
+            gameState.waitForRoundToFinish(QUESTION_TIMEOUT);
+            System.out.println("[GAME] Ronda terminou (todas respostas recebidas ou timeout).");
 
-            if (answersReceived >= expectedAnswers) {
-                System.out.println("[GAME] Todas as respostas recebidas! (" + answersReceived + "/" + expectedAnswers + ")");
-                break;
-            }
+        } catch (InterruptedException e) {
+            System.err.println("[GAME] Espera por respostas interrompida: " + e.getMessage());
+            Thread.currentThread().interrupt();
 
-            if (elapsed >= QUESTION_TIMEOUT) {
-                System.out.println("[GAME] Timeout! Respostas recebidas: " + answersReceived + "/" + expectedAnswers);
-                break;
-            }
-
-            // Aguarda 500ms antes de verificar novamente
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
         }
+        System.out.println("[GAME] Fim da espera (Tempo esgotado ou todos responderam).");
+
+
     }
 
     /**
