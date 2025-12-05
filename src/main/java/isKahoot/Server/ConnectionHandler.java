@@ -90,6 +90,7 @@ public class ConnectionHandler extends Thread {
      * Atribui automaticamente o cliente a uma equipa disponível.
      * Procura pela primeira equipa que tem menos de 2 jogadores.
      */
+    //temos 4 threads a correr, cada um com o seu connection handler, a tentar acerder a equipas ao mesmo tempo
     private void assignToTeam() {
         synchronized (teams) {
             for (String teamId : teams.keySet()) {

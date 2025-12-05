@@ -87,7 +87,7 @@ public class GameServer {
                         teams,           // passa referência das equipas
                         gameState        // passa referência do GameState
                 );
-                handler.start();
+                handler.start();   //inicia a thread, ConnectionHandler.run() corre em //
                 clients.add(handler);
                 connectedClients++;
             }
@@ -101,10 +101,10 @@ public class GameServer {
             // 6. Aguarda um pouco antes de iniciar o jogo
             Thread.sleep(2000);
 
-            // 7. Inicia o GameHandler (ciclo do jogo)
+            // 7. Inicia o GameHandler (ciclo do jogo), quando a sala enche
             System.out.println("[SERVER] Iniciando ciclo do jogo...");
             GameHandler gameHandler = new GameHandler(clients, gameState);
-            gameHandler.start();
+            gameHandler.start();  //Lança a thread do jogo, que vai controlar as rondas, enviar perguntas e contar o tempo
 
         } catch (IOException e) {
             System.err.println("[SERVER] Erro de I/O: " + e.getMessage());
@@ -126,7 +126,7 @@ public class GameServer {
     private static String findQuizzesFile() {
         String[] possiblePaths = {
                 "isKahoot/resources/quizzes.json",
-                "isKahoot/target/classes/quizzes.json",
+                "isKahoot/target/classes/quizzes.json", // ?? porque isto ??
                 "src/main/resources/quizzes.json",
                 "quizzes.json"
         };

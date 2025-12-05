@@ -260,6 +260,7 @@ public class GUI extends JFrame {
         timeLeft = secondsLeft;
         updateTimer(timeLeft);
 
+        //para anterior se existir
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
