@@ -27,6 +27,51 @@ public class GameServer {
     private Map<String, Team> teams;
     private GameState gameState;
 
+    private Map<String, GameRoom> activeRooms = new HashMap<>();
+
+
+
+    public void createRoom() {
+        String roomCode = generateRoomCode();
+
+        String path = findQuizzesFile();
+        if(path ==null){
+            System.err.println("[SERVER] ERRO: Ficheiro quizzes.json não encontrado! Não foi possível criar a sala.");
+            return;
+        }
+
+        List<Question> questions = QuestionLoader.loadFromJson(path);
+        if (questions.isEmpty()) {
+            System.out.println("[SERVER] Erro: Ficheiro sem perguntas.");
+            return;
+        }
+
+        //cria sala
+        GameRoom room = new GameRoom(roomCode, questions);
+        synchronized (activeRooms){
+            activeRooms.put(roomCode, room);
+        }
+
+        startAcceptingClients();
+
+        System.out.println("[SERVER] Sala criada com sucesso! CÓDIGO: " + roomCode);
+        System.out.println("[SERVER] (Partilha este código com os clientes)");
+
+    }
+
+    public void startGame(String roomCode){
+        GameRoom room;
+        synchronized (activeRooms){
+            room = activeRooms.get(roomCode);
+        }
+        if(room ==null){
+            System.out.println("[SERVER] Erro: Sala com código " +roomCode + " não existe.");
+        } else {
+            room.startGame();  //lanca gamehandler da slaa
+        }
+    }
+
+
     /**
      * Inicia o servidor.
      */
