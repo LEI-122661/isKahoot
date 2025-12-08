@@ -60,9 +60,14 @@ public class Client {
      * O servidor usa isto para auto-atribuir o jogador a uma equipa.
      */
     private void sendClientInfo() throws IOException {
+        // --- NOVO: Perguntar o código da sala ao utilizador ---
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        System.out.print(">> Insere o CÓDIGO DA SALA (dado pelo servidor): ");
+        String code = scanner.nextLine().trim().toUpperCase();
+
         ClientInfo info = new ClientInfo(
                 username,        // nome: "Client1", "Client2", etc.
-                null,            // gameCode: null (servidor atribui)
+                code,            // gameCode: null (servidor atribui)
                 null             // teamId: null (servidor atribui automaticamente)
         );
 

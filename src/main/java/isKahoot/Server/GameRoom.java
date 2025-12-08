@@ -44,8 +44,8 @@ public class GameRoom {
         this.gameState = new GameState(questions, teams);
 
         for(ConnectionHandler p:players){
-            p.setGameData(teams, gameState);
-            p.assignToTeam;
+            p.setgameInfo(teams, gameState);
+            p.assignToTeam();
         }
 
         //lanca thread do jogo

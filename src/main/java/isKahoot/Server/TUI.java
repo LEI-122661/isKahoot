@@ -48,7 +48,7 @@ public class TUI {
                     break;
 
                 case "exit":
-                    gameServer.shutdown();
+                    gameServer.closeServer();
                     return;
 
                 default:
