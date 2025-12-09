@@ -13,11 +13,15 @@ public class GameState {
 
     // teamId -> Team
     private final Map<String, Team> teams;
-
     // username -> optionIndex (resposta desta ronda)
     private final Map<String, Integer> currentAnswers;
+    private final Map<String, Integer> answerBonus = new HashMap<>();
 
     private boolean roundActive;
+
+    //SINCRONIZAÇÃO DAS RESPOSTAS
+    private AnswerSemaphore semaforo;
+    private Map<String, TeamBarrier> teamBarriers;
 
     /**
      * Construtor do GameState.
@@ -46,11 +50,39 @@ public class GameState {
      */
     public void startRound() {
         currentAnswers.clear();
+        answerBonus.clear();
         roundActive = true;
 
-        // Reseta a pontuação de ronda em todas as equipas
-        for (Team team : teams.values()) {
+        for (Team team : teams.values()) {  //reinicia pontuação da ronda
             team.resetRoundScore();
+        }
+        // SEMAFORO
+        int activePlayers = getActivePlayers();
+        int tamanhoSemaforo;
+        if (activePlayers > 0) {
+            tamanhoSemaforo = activePlayers;
+        } else {
+            tamanhoSemaforo = 0;
+        }
+        semaforo = new AnswerSemaphore(tamanhoSemaforo);
+
+
+        Question q = getCurrentQuestion();
+        if (q != null && q.isTeamQuestion()) {
+            //EQUIPA
+            System.out.println("[GAMESTATE] Ronda de EQUIPA iniciada!");
+            teamBarriers = new HashMap<>();
+
+            for (Team team : teams.values()) {
+                int size = team.getPlayerCount();
+                if (size > 0) {
+                    teamBarriers.put(team.getTeamId(), new TeamBarrier(size, q.getCorrect(), q.getPoints()));
+                }
+            }
+        } else {
+            // individeal
+            System.out.println("[GAMESTATE] Ronda INDIVIDUAL iniciada!");
+            teamBarriers = null; // Não usamos barreiras nesta ronda
         }
     }
 
@@ -85,7 +117,7 @@ public class GameState {
      * @param username nome do jogador
      * @param optionIndex índice da opção (0-3)
      * @return true se a resposta foi aceite
-     */
+
     public synchronized boolean receiveAnswer(String username, int optionIndex) {
         if (!roundActive) return false;
         if (currentAnswers.containsKey(username)) return false;
@@ -94,10 +126,96 @@ public class GameState {
         return true;
     }
 
+    //tirei synchronized porque o semaforo ou barreira ja tratam da concorrencia
+    public boolean receiveAnswer(String username, int optionIndex) {
+        if (!roundActive) return false;
+        if (currentAnswers.containsKey(username)) return false;
+
+        //regista resposta
+        currentAnswers.put(username,optionIndex);
+
+        //chama semaforo e obtem multiplicador de pontos
+        int pointsMultiplier = 0;
+        if (semaforo != null){
+            pointsMultiplier= semaforo.acquire();
+        }
+
+        //guardar bonus
+        answerBonus.put(username,pointsMultiplier);
+
+        return true;
+    }  **/
+
+    public boolean receiveAnswer(String username, int optionIndex) {
+        Team team;
+        synchronized(this) {
+            if (!roundActive || currentAnswers.containsKey(username)) return false;
+            // Regista logo que respondeu
+            currentAnswers.put(username, optionIndex);
+            team = findTeamOfPlayer(username);
+        }
+        if (team == null) return false;
+        // 2. Decide o caminho
+        if (teamBarriers != null) {
+            return handleTeamAnswer(username, optionIndex, team);
+        } else {
+            return handleIndividualAnswer(username); // No individual o index já foi guardado
+        }
+    }
+
+    private boolean handleIndividualAnswer(String username) {
+        int multiplier = 0;
+        if (semaforo != null) {
+            multiplier = semaforo.acquire();
+        }
+        synchronized(this) {
+            answerBonus.put(username, multiplier);
+        }
+        return true;
+    }
+
+    private boolean handleTeamAnswer(String username, int optionIndex, Team team) {
+        int points = 0;
+        try {
+            TeamBarrier barrier = teamBarriers.get(team.getTeamId());
+            if (barrier != null) {
+                // BLOQUEANTE: Espera pelo colega
+                points = barrier.submitAnswer(optionIndex);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        // Guarda os pontos finais da equipa
+        synchronized(this) {
+            answerBonus.put(username, points);
+        }
+        // Avisa o contador global que este jogador acabou
+        if (semaforo != null) {
+            semaforo.acquire();
+        }
+        return true;
+    }
+
+
+    //para gamehandler chamar waitForTimeout do semaforo
+    public void waitForRoundToFinish(long temporizador) throws InterruptedException {
+        if (semaforo != null){  //individual ou equipa, conta jogadores
+            semaforo.waitForTimeout(temporizador);
+        }
+
+        //tempo acabou, forca abertura das barreiras de equipa para n ficar preso no wait
+        if(teamBarriers != null){
+            for(TeamBarrier b: teamBarriers.values()){
+                b.forceOpenBarrier();
+            }
+        }
+    }
+
     /**
      * Termina a ronda e calcula pontos.
      * Retorna mapa teamId -> pontos ganhos nessa ronda.
-     */
+
     public synchronized Map<String, Integer> endRoundAndComputePoints() {
         roundActive = false;
         Question q = getCurrentQuestion();
@@ -116,14 +234,67 @@ public class GameState {
 
             if (team == null) continue;
 
-            int gained = 0;
+            int pointsGained = 0;
             if (answer == correct) {
-                gained = pointsPerCorrect;
-                team.addPoints(gained); // CORRIGIDO: era updateScore
+
+                int bonus=answerBonus.getOrDefault(username,0);
+                pointsGained = pointsPerCorrect * bonus;
+                team.addPoints(pointsGained); // CORRIGIDO: era updateScore
             }
 
             String teamId = team.getTeamId(); // CORRIGIDO: era getTeamName
-            roundPoints.put(teamId, roundPoints.getOrDefault(teamId, 0) + gained);
+            roundPoints.put(teamId, roundPoints.getOrDefault(teamId, 0) + pointsGained);
+        }
+
+        return roundPoints;
+    } **/
+
+
+    public synchronized Map<String, Integer> endRoundAndComputePoints() {
+        roundActive = false;
+        Question q = getCurrentQuestion();
+        if (q == null) return Collections.emptyMap();
+
+        Map<String, Integer> roundPoints = new HashMap<>();
+        boolean isTeamRound = q.isTeamQuestion(); // O tal boolean que querias usar
+
+        // --- LÓGICA DE EQUIPA
+        if (isTeamRound) {
+            for (Team team : teams.values()) {
+                // Tenta encontrar UM jogador desta equipa que tenha registo de bónus/pontos, 1 pq na barrier os dois recebem mesma pontuacao
+                for (String player : team.getPlayers()) {
+                    if (answerBonus.containsKey(player)) {
+                        int points = answerBonus.get(player);
+
+                        team.addPoints(points);
+                        roundPoints.put(team.getTeamId(), points);
+                        break; // Já processámos esta equipa, interrompe o loop dos jogadores e vai para a próxima equipa
+                    }
+                }
+            }
+
+        } else {
+            // --- LÓGICA INDIVIDUAL
+            // Aqui temos de somar o esforço individual de cada jogador
+            int correct = q.getCorrect();
+            int pointsPerCorrect = q.getPoints();
+            for (Map.Entry<String, Integer> entry : currentAnswers.entrySet()) {  //por cada membro da equipa
+                String username = entry.getKey();
+                int answer = entry.getValue();
+                Team team = findTeamOfPlayer(username);
+
+                if (team == null) continue;
+
+                int gained = 0;
+                if (answer == correct) {
+                    int multiplier = answerBonus.getOrDefault(username, 1);
+                    gained = pointsPerCorrect * multiplier;
+                    team.addPoints(gained);
+                }
+                // Soma ao total da equipa na ronda (acumula se o parceiro também acertar)
+                String tId = team.getTeamId();
+                roundPoints.put(tId, roundPoints.getOrDefault(tId, 0) + gained);
+            }
         }
 
         return roundPoints;

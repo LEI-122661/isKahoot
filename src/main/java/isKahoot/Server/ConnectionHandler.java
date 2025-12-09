@@ -16,8 +16,10 @@ public class ConnectionHandler extends Thread {
 
     private final Socket connection;
     private final int clientId;
-    private final Map<String, Team> teams; // referência às equipas do jogo
-    private final GameState gameState;     // referência ao estado do jogo
+    private GameServer gameServer;
+
+    private Map<String, Team> teams; // referência às equipas do jogo
+    private GameState gameState;     // referência ao estado do jogo
 
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -29,26 +31,46 @@ public class ConnectionHandler extends Thread {
      *
      * @param connection socket da conexão com o cliente
      * @param clientId identificador sequencial do cliente
-     * @param teams mapa de equipas (para atribuição automática)
-     * @param gameState estado do jogo compartilhado
      */
-    public ConnectionHandler(Socket connection, int clientId,
-                             Map<String, Team> teams, GameState gameState) {
+    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer) {
         this.connection = connection;
         this.clientId = clientId;
-        this.teams = teams;
-        this.gameState = gameState;
+        this.gameServer = gameServer;
         this.username = "Client" + clientId; // default
         this.assignedTeamId = null; // será atribuído após receber ClientInfo
+    }
+
+    public void setgameInfo(Map<String, Team> teams, GameState gameState) {
+        this.teams=teams;
+        this.gameState=gameState;
     }
 
     @Override
     public void run() {
         try {
             setStreams();
-            receiveClientInfo();      // Recebe e processa informações do cliente
-            assignToTeam();           // Atribui automaticamente a uma equipa disponível
-            processConnection();      // Processa mensagens durante o jogo
+
+            ClientInfo infoClient = receiveClientInfo();      // Recebe e processa informações do cliente
+            if(infoClient == null){
+                return;
+            }
+
+            String code = infoClient.getGameCode();
+            System.out.println("[HANDLER " + username + "] A tentar entrar na sala: " + code);
+
+            GameRoom room = gameServer.getRoom(code);
+            if(room != null){
+                if(room.addPlayer(this)){
+                    System.out.println("[HANDLER] " + username + " entrou na sala " + code);
+                    sendMessage("SCREEN:LOBBY");
+
+                    processConnection();
+                } else {
+                    sendMessage("ERROR:Jogo já começou");
+                }
+            } else{
+                sendMessage("ERROR:Código de sala inválido");
+            }
         } catch (IOException e) {
             System.err.println("[HANDLER " + username + "] Erro: " + e.getMessage());
             e.printStackTrace();
@@ -68,11 +90,12 @@ public class ConnectionHandler extends Thread {
         System.out.println("[HANDLER] Streams inicializados para cliente #" + clientId);
     }
 
+
     /**
      * Recebe as informações do cliente (ClientInfo).
      * O cliente envia isto logo após conectar.
      */
-    private void receiveClientInfo() throws IOException {
+    private ClientInfo receiveClientInfo() throws IOException {
         try {
             Object obj = in.readObject();
             if (obj instanceof ClientInfo) {
@@ -80,17 +103,21 @@ public class ConnectionHandler extends Thread {
                 this.username = info.getUsername();
                 System.out.println("[HANDLER] Recebido ClientInfo: " + info);
                 System.out.println("[HANDLER] Username atribuído: " + username);
+                return info;
             }
         } catch (ClassNotFoundException e) {
             System.err.println("[HANDLER] Erro ao deserializar ClientInfo: " + e.getMessage());
         }
+        return null;
     }
 
     /**
      * Atribui automaticamente o cliente a uma equipa disponível.
-     * Procura pela primeira equipa que tem menos de 2 jogadores.
-     */
-    private void assignToTeam() {
+     * Procura pela primeira equipa que tem menos de 2 jogadores. */
+
+    //temos 4 threads a correr, cada um com o seu connection handler, a tentar acerder a equipas ao mesmo tempo
+    public void assignToTeam() {
+        if(teams == null) return;
         synchronized (teams) {
             for (String teamId : teams.keySet()) {
                 Team team = teams.get(teamId);
@@ -105,10 +132,6 @@ public class ConnectionHandler extends Thread {
                 }
             }
         }
-
-        // Se chegou aqui, nenhuma equipa tem espaço
-        System.err.println("[HANDLER] ERRO: Nenhuma equipa disponível para " + username);
-        sendMessage("ERROR:Nenhuma equipa disponível");
     }
 
     /**
@@ -142,20 +165,22 @@ public class ConnectionHandler extends Thread {
      */
     private void handleClientMessage(String msg) {
         if (msg.startsWith("ANSWER:")) {
-            String answerStr = msg.substring("ANSWER:".length());
-            try {
-                int optionIndex = Integer.parseInt(answerStr);
-                System.out.println("[HANDLER " + username + "] Resposta recebida: opção " + optionIndex);
+            if(gameState!=null){
+                String answerStr = msg.substring("ANSWER:".length());
+                try {
+                    int optionIndex = Integer.parseInt(answerStr);
+                    System.out.println("[HANDLER " + username + "] Resposta recebida: opção " + optionIndex);
 
-                // Registar resposta no GameState
-                boolean accepted = gameState.receiveAnswer(username, optionIndex);
-                if (accepted) {
-                    System.out.println("[HANDLER " + username + "] Resposta aceite!");
-                } else {
-                    System.out.println("[HANDLER " + username + "] Resposta rejeitada (já respondeu ou ronda terminou)");
+                    // Registar resposta no GameState
+                    boolean accepted = gameState.receiveAnswer(username, optionIndex);
+                    if (accepted) {
+                        System.out.println("[HANDLER " + username + "] Resposta aceite!");
+                    } else {
+                        System.out.println("[HANDLER " + username + "] Resposta rejeitada (já respondeu ou ronda terminou)");
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("[HANDLER " + username + "] Opção inválida: " + answerStr);
                 }
-            } catch (NumberFormatException e) {
-                System.err.println("[HANDLER " + username + "] Opção inválida: " + answerStr);
             }
 
         } else if (msg.equals("NEXT")) {
@@ -190,7 +215,7 @@ public class ConnectionHandler extends Thread {
     private void closeConnection() {
         try {
             // Remove o jogador da equipa
-            if (assignedTeamId != null && teams.containsKey(assignedTeamId)) {
+            if (assignedTeamId != null && teams!=null && teams.containsKey(assignedTeamId)) {
                 teams.get(assignedTeamId).removePlayer(username);
             }
 

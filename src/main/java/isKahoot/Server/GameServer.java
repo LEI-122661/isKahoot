@@ -27,9 +27,128 @@ public class GameServer {
     private Map<String, Team> teams;
     private GameState gameState;
 
+    private Map<String, GameRoom> activeRooms = new HashMap<>();
+    private boolean aceptiongClients = false;
+    private Thread acceptanceThread;
+
+
+    public void createRoom() {
+        String roomCode = generateRoomCode();
+
+        String path = findQuizzesFile();
+        if(path ==null){
+            System.err.println("[SERVER] ERRO: Ficheiro quizzes.json não encontrado! Não foi possível criar a sala.");
+            return;
+        }
+
+        List<Question> questions = QuestionLoader.loadFromJson(path);
+        if (questions.isEmpty()) {
+            System.out.println("[SERVER] Erro: Ficheiro sem perguntas.");
+            return;
+        }
+
+        //cria sala
+        GameRoom room = new GameRoom(roomCode, questions);
+        synchronized (activeRooms){
+            activeRooms.put(roomCode, room);
+        }
+
+        startAcceptingClients();
+
+        System.out.println("[SERVER] Sala criada com sucesso! CÓDIGO: " + roomCode);
+        System.out.println("[SERVER] (Partilha este código com os clientes)");
+
+    }
+
+    public void startGame(String roomCode){
+        GameRoom room;
+        synchronized (activeRooms){
+            room = activeRooms.get(roomCode);
+        }
+        if(room ==null){
+            System.out.println("[SERVER] Erro: Sala com código " +roomCode + " não existe.");
+        } else {
+            room.startGame();  //lanca gamehandler da slaa
+        }
+    }
+
+
+    public String listRooms() {
+        // Bloqueamos o mapa para ninguém o alterar enquanto lemos
+        synchronized (activeRooms) {
+
+            // Se o mapa estiver vazio, despacha logo
+            if (activeRooms.isEmpty()) {
+                return "Nenhuma sala ativa.";
+            }
+
+            // StringBuilder é como um saco onde vamos metendo texto
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- Salas Ativas ---\n");
+
+            // Percorrer todas as salas (Foreach)
+            for (Map.Entry<String, GameRoom> entry : activeRooms.entrySet()) {
+
+                String codigoSala = entry.getKey();
+                GameRoom sala = entry.getValue();
+
+                // Construção simples com "+" em vez de %s
+                sb.append(" [Sala " + codigoSala + "]");
+                sb.append(" - Jogadores: " + sala.getPlayerCount());
+
+                // Transforma o boolean em texto "Sim" ou "Não"
+                String estadoJogo = "";
+                if (sala.isGameRunning()) {
+                    estadoJogo = "Sim";
+                } else {
+                    estadoJogo = "Não";
+                }
+                sb.append(" - A decorrer: " + estadoJogo);
+                sb.append("\n"); // Muda de linha
+
+                // Lista os nomes dos jogadores desta sala
+                for (ConnectionHandler jogador : sala.getPlayers()) {
+                    sb.append("    -> " + jogador.getUsername() + "\n");
+                }
+            }
+
+            // Devolve o texto
+            return sb.toString();
+        }
+    }
+
+    public GameRoom getRoom(String roomCode){
+        synchronized (activeRooms){
+            return activeRooms.get(roomCode);
+        }
+    }
+
+
+    private String generateRoomCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        Random rnd = new Random();
+        StringBuilder sb = new StringBuilder();
+
+        do {
+            // PASSO A: Limpar o quadro, codigo antigo existia, tenta de novo
+            sb.setLength(0);
+
+            // PASSO B: Construir um código de 4 letras
+            for (int i = 0; i < 4; i++) {
+                int index = rnd.nextInt(chars.length());
+                char letraSorteada = chars.charAt(index);
+                sb.append(letraSorteada);
+            }
+
+        } while (activeRooms.containsKey(sb.toString()));  //verifica se codigo ja existia, se existia volta ao loop
+        return sb.toString();
+    }
+
+
     /**
      * Inicia o servidor.
-     */
+
     public void runServer() {
         try {
             // 1. Carrega perguntas do ficheiro JSON
@@ -87,7 +206,7 @@ public class GameServer {
                         teams,           // passa referência das equipas
                         gameState        // passa referência do GameState
                 );
-                handler.start();
+                handler.start();   //inicia a thread, ConnectionHandler.run() corre em //
                 clients.add(handler);
                 connectedClients++;
             }
@@ -101,10 +220,10 @@ public class GameServer {
             // 6. Aguarda um pouco antes de iniciar o jogo
             Thread.sleep(2000);
 
-            // 7. Inicia o GameHandler (ciclo do jogo)
+            // 7. Inicia o GameHandler (ciclo do jogo), quando a sala enche
             System.out.println("[SERVER] Iniciando ciclo do jogo...");
             GameHandler gameHandler = new GameHandler(clients, gameState);
-            gameHandler.start();
+            gameHandler.start();  //Lança a thread do jogo, que vai controlar as rondas, enviar perguntas e contar o tempo
 
         } catch (IOException e) {
             System.err.println("[SERVER] Erro de I/O: " + e.getMessage());
@@ -118,7 +237,7 @@ public class GameServer {
         } finally {
             closeServer();
         }
-    }
+    }  */
 
     /**
      * Procura o ficheiro quizzes.json em vários locais.
@@ -126,7 +245,7 @@ public class GameServer {
     private static String findQuizzesFile() {
         String[] possiblePaths = {
                 "isKahoot/resources/quizzes.json",
-                "isKahoot/target/classes/quizzes.json",
+                "isKahoot/target/classes/quizzes.json", // ?? porque isto ??
                 "src/main/resources/quizzes.json",
                 "quizzes.json"
         };
@@ -137,14 +256,48 @@ public class GameServer {
                 return path;
             }
         }
-
         return null;
+    }
+
+    private void startAcceptingClients(){
+        if(aceptiongClients){
+            return;  //ja esta o jogo a correr
+        }
+
+        try {
+            server = new ServerSocket(PORT);
+            aceptiongClients =true;
+            System.out.println("[SERVER] Socket aberto na porta " + PORT + ". À escuta...");
+
+            //thread que aceita clientes para nao bloquear tui
+            acceptanceThread = new Thread(() -> {
+                int clienNumber = 0;
+                while (aceptiongClients && !server.isClosed()) {
+                    try{
+                        Socket clientSocket = server.accept();
+                        clienNumber++;
+                        ConnectionHandler cliente = new ConnectionHandler(clientSocket,clienNumber,this);
+                        cliente.start();
+                        System.out.println("[SERVER] Novo cliente conectado: #" + clienNumber);
+
+                    } catch (IOException e){
+                        if(aceptiongClients) {
+                            System.err.println("[SERVER] Erro ao aceitar cliente: " + e.getMessage());
+                        }
+                    }
+                }
+            });
+            acceptanceThread.start();
+        } catch (IOException e){
+            System.err.println("[SERVER] Erro ao iniciar socket do servidor: " + e.getMessage());
+        }
     }
 
     /**
      * Fecha o servidor.
      */
-    private void closeServer() {
+    public void closeServer() {
+        aceptiongClients =false;
         try {
             if (server != null && !server.isClosed()) {
                 server.close();
@@ -160,6 +313,6 @@ public class GameServer {
      */
     public static void main(String[] args) {
         GameServer server = new GameServer();
-        server.runServer();
+        new TUI(server).run();  // Inicia a interface de texto
     }
 }

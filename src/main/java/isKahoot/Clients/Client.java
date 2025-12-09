@@ -50,7 +50,7 @@ public class Client {
      */
     private void setStreams() throws IOException {
         out = new ObjectOutputStream(connection.getOutputStream());
-        out.flush(); // CRÍTICO!
+        out.flush(); // CRÍTICO, para enviar dados, sem isto servidor fica a espera do cabecalho ineterno de outputstream e nunca cria o InputStream
         in = new ObjectInputStream(connection.getInputStream());
         System.out.println("[CLIENT " + username + "] Streams inicializados.");
     }
@@ -60,14 +60,19 @@ public class Client {
      * O servidor usa isto para auto-atribuir o jogador a uma equipa.
      */
     private void sendClientInfo() throws IOException {
+        // --- NOVO: Perguntar o código da sala ao utilizador ---
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        System.out.print(">> Insere o CÓDIGO DA SALA (dado pelo servidor): ");
+        String code = scanner.nextLine().trim().toUpperCase();
+
         ClientInfo info = new ClientInfo(
                 username,        // nome: "Client1", "Client2", etc.
-                null,            // gameCode: null (servidor atribui)
+                code,            // gameCode: null (servidor atribui)
                 null             // teamId: null (servidor atribui automaticamente)
         );
 
-        out.writeObject(info);
-        out.flush();
+        out.writeObject(info);  //serializa e envia o objeto ClientInfo por connction
+        out.flush();            //enviar informacoes
         System.out.println("[CLIENT " + username + "] Informações enviadas: " + info);
     }
 
@@ -81,7 +86,7 @@ public class Client {
                 try {
                     Object msg = in.readObject();
 
-                    if (msg instanceof String) {
+                    if (msg instanceof String) {   //nosso protocolo usa apenas strings "SCREEN:LOBBY", "SCREEN:QUESTION:...", etc.
                         String strMsg = (String) msg;
                         System.out.println("[CLIENT " + username + "] Recebido: " + strMsg);
 
@@ -109,9 +114,10 @@ public class Client {
 
         } else if (msg.startsWith("SCREEN:QUESTION:")) {
             String payload = msg.substring("SCREEN:QUESTION:".length());
-            String[] parts = payload.split("\\|");
+            String[] parts = payload.split("\\|");  // usamos // para dizer que queremos o caractere | mesmo, pois | é especial em regex
+            //Se msg era "SCREEN:QUESTION:O que é?|A|B|C|D|30", o payload fica "O que é?|A|B|C|D|30".
 
-            if (parts.length >= 6) {
+            if (parts.length >= 6) {  // pergunta + 4 opções
                 String questionText = parts[0];
                 String[] opts = new String[]{parts[1], parts[2], parts[3], parts[4]};
                 int seconds;
@@ -152,7 +158,7 @@ public class Client {
      * Cria a GUI do jogo.
      */
     private void createGUI() {
-        javax.swing.SwingUtilities.invokeLater(() -> {
+        javax.swing.SwingUtilities.invokeLater(() -> {  //Coloca a criação da janela na fila de espera da Thread do Swing (EDT) e executa quando for seguro
             gui = new GUI();
             gui.setTitle("IsKahoot - " + username); // título com nome do cliente
 
