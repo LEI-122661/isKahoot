@@ -12,16 +12,21 @@ public class GameRoom {
     private GameState gameState;
     private boolean isGameRunning = false;
     private List<Question> questions = new ArrayList<>();
+    private Integer numTeams;
+    private Integer numPlayersPerTeam;
 
-    public GameRoom(String roomCode, List<Question> questions) {
+    public GameRoom(String roomCode, List<Question> questions,int numTeams, int numPlayersPerTeam) {
         this.roomCode = roomCode;
         this.questions=questions;
+        this.numTeams = numTeams;
+        this.numPlayersPerTeam = numPlayersPerTeam;
+        //TODO: adicionar jogadores e equipas por aqui
     }
 
-    //adiciona jogadro a sala
+    //adiciona jogador a sala
     public synchronized boolean addPlayer(ConnectionHandler player){
         if(isGameRunning){
-            return false;  //ja comecou nao da para entarr
+            return false;  //ja comecou nao da para entrar
         }
         players.add(player);
         return true;
@@ -33,12 +38,14 @@ public class GameRoom {
         }
         System.out.println("[ROOM " + roomCode + "] A iniciar jogo com " + players.size() + " jogadores.");
 
-        //cria equipas
+        /*
+        cria equipas
         int numTeams = (int) Math.ceil(players.size() / 2.0);  // Exemplo: 5 jogadores -> 3 equipas
         for (int i = 1; i <= numTeams; i++) {
             String teamId = "team"+i;
             teams.put(teamId, new Team(teamId, "Team " + i));
         }
+        */
 
         //cria gamestate
         this.gameState = new GameState(questions, teams);

@@ -32,7 +32,7 @@ public class ConnectionHandler extends Thread {
      * @param connection socket da conexão com o cliente
      * @param clientId identificador sequencial do cliente
      */
-    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer) {
+    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer,team) {
         this.connection = connection;
         this.clientId = clientId;
         this.gameServer = gameServer;

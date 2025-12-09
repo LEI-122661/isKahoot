@@ -7,6 +7,6 @@ package isKahoot.Clients;
 public class Client2 {
     public static void main(String[] args) {
         Client client = new Client();
-        client.runClient("Client2"); // auto-atribui a "Client2"
+        client.runClient("Client2","Equipa1"); // auto-atribui a "Client2"
     }
 }
