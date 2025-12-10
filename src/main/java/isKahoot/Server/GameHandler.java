@@ -111,7 +111,7 @@ public class GameHandler extends Thread {
 
         try{
             //gamsate acorda quando timedout ou todas respostas recebidas
-            gameState.waitForRoundToFinish(QUESTION_TIMEOUT);
+            gameState.waitForRoundToFinish();
             System.out.println("[GAME] Ronda terminou (todas respostas recebidas ou timeout).");
 
         } catch (InterruptedException e) {

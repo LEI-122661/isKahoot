@@ -32,7 +32,7 @@ public class ConnectionHandler extends Thread {
      * @param connection socket da conexão com o cliente
      * @param clientId identificador sequencial do cliente
      */
-    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer,team) {
+    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer) {
         this.connection = connection;
         this.clientId = clientId;
         this.gameServer = gameServer;
@@ -172,7 +172,7 @@ public class ConnectionHandler extends Thread {
                     System.out.println("[HANDLER " + username + "] Resposta recebida: opção " + optionIndex);
 
                     // Registar resposta no GameState
-                    boolean accepted = gameState.receiveAnswer(username, optionIndex);
+                    boolean accepted = gameState.recieveAnswer(username, optionIndex);
                     if (accepted) {
                         System.out.println("[HANDLER " + username + "] Resposta aceite!");
                     } else {

@@ -276,7 +276,7 @@ public class GameServer {
                     try{
                         Socket clientSocket = server.accept();
                         clienNumber++;
-                        ConnectionHandler cliente = new ConnectionHandler(clientSocket,clienNumber,this,teams);
+                        ConnectionHandler cliente = new ConnectionHandler(clientSocket,clienNumber,this);
                         cliente.start();
                         System.out.println("[SERVER] Novo cliente conectado: #" + clienNumber);
 

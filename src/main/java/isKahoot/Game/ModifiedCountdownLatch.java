@@ -3,54 +3,61 @@ package isKahoot.Game;
 public class ModifiedCountdownLatch {
 
     private int bonusFactor;
-    private int bonusCount;
+    private int bonusCount;            //quantos ganham bonus
     private int waitperiod;
-    private int currentCount;
+    private int count;                // jogadores que faltam responder
+    private boolean timedOut = false;
+    private int totalPlayers;
 
 
-    public ModifiedCountdownLatch(int bonusFactor, int bonusCount, int waitperiod, int currentCount) {
+    public ModifiedCountdownLatch(int bonusFactor, int bonusCount, int waitperiod, int count) {
         this.bonusFactor = bonusFactor;
         this.bonusCount = bonusCount;
         this.waitperiod = waitperiod;
-        this.currentCount = currentCount;
+        this.count = count;
+        this.totalPlayers = count;
+
     }
 
-
+    //chamado por cada jogador(ConnectionHandler) quando responde
     public synchronized int countdown (){
-        //TODO: implementar logica de bonus
-        currentCount--;
-
-        if(currentCount<=0){
-            notifyAll();
+        if(timedOut || count<0){
             return 0;
         }
-        if(currentCount<=2){
-            return
+
+        count--;
+
+        if(count == 0){   //ultimo players respondeu
+            notifyAll();
         }
 
-        return bonusFactor;
+        //Logiva do bonus
+        int answersRecieved = totalPlayers - count; //+1 pq ja decrementou
+        if(answersRecieved <=bonusFactor){
+            return bonusCount;
+        } else {
+            return 1;
+        }
+
     }
 
-
-    public synchronized void await () throws InterruptedException{
+    //chamada pelo
+    public synchronized void await() throws  InterruptedException {
         long startTime = System.currentTimeMillis();
+        long remainngTime = waitperiod;
 
-        while(currentCount>0){
-            long timePassed =System.currentTimeMillis() -startTime;
-            long timeLeft = waitperiod - timePassed;
+        while (!timedOut && count>0){
+            wait(remainngTime);
 
-            if(timeLeft <= 0){  //acabao tempo
-                notifyAll();
-                break;
-            }
+            long tempoDecorrido = System.currentTimeMillis() - startTime;
+            remainngTime = waitperiod - tempoDecorrido;
+        }
 
-            wait(timeLeft);  //espera o tempo que falta
+        if(remainngTime <= 0 && count>0){
+            timedOut =true;
         }
     }
 
-    public void setCurrentCount(int currentCount) {
-        this.currentCount = currentCount;
-    }
 
 
 
