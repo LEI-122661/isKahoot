@@ -6,6 +6,7 @@ public class TUI {
 
     private GameServer gameServer;
 
+
     public TUI(GameServer gameServer) {
         this.gameServer=gameServer;
     }
@@ -31,8 +32,14 @@ public class TUI {
 
             switch (command) {
                 case "create":
-                    gameServer.createRoom();
+                    if (parts.length < 2) {
+                        System.out.println("Erro: faltam argumentos. Ex: create 2 2");
+                    }
+                    int numEquipas = Integer.parseInt(parts[1]);
+                    int numJogadores = Integer.parseInt(parts[2]);
+                    gameServer.createRoom(numEquipas, numJogadores);
                     break;
+
 
                 case "list":
                     System.out.println(gameServer.listRooms());

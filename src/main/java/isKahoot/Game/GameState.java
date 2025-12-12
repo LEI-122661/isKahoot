@@ -18,10 +18,12 @@ public class GameState {
     private final Map<String, Integer> answerBonus = new HashMap<>();
 
     private boolean roundActive;
+    private boolean isTeamRound;
 
     //SINCRONIZAÇÃO DAS RESPOSTAS
-    private AnswerSemaphore semaforo;
+    //private AnswerSemaphore semaforo;
     private Map<String, TeamBarrier> teamBarriers;
+    private ModifiedCountdownLatch latch;
 
     /**
      * Construtor do GameState.
@@ -56,33 +58,35 @@ public class GameState {
         for (Team team : teams.values()) {  //reinicia pontuação da ronda
             team.resetRoundScore();
         }
-        // SEMAFORO
+
+        isTeamRound = (currentIndex % 2 != 0);
+        // Índice Par (0, 2, 4...) = INDIVIDUAL
+        // Índice Ímpar (1, 3, 5...) = EQUIPA
+
         int activePlayers = getActivePlayers();
-        int tamanhoSemaforo;
+
+        //configurar latch
         if (activePlayers > 0) {
-            tamanhoSemaforo = activePlayers;
+            latch = new ModifiedCountdownLatch(2, 2, 30000, activePlayers);
         } else {
-            tamanhoSemaforo = 0;
+            latch = null;
         }
-        semaforo = new AnswerSemaphore(tamanhoSemaforo);
 
-
-        Question q = getCurrentQuestion();
-        if (q != null && q.isTeamQuestion()) {
-            //EQUIPA
-            System.out.println("[GAMESTATE] Ronda de EQUIPA iniciada!");
+        //configurar barrier
+        if (isTeamRound) {
             teamBarriers = new HashMap<>();
+            Question q = getCurrentQuestion();
+            int points = q.getPoints();
+            int correct = q.getCorrect();
 
-            for (Team team : teams.values()) {
-                int size = team.getPlayerCount();
+            for (Team t : teams.values()) {
+                int size = t.getPlayerCount();
                 if (size > 0) {
-                    teamBarriers.put(team.getTeamId(), new TeamBarrier(size, q.getCorrect(), q.getPoints()));
+                    teamBarriers.put(t.getTeamId(), new TeamBarrier(size, correct, points));
                 }
             }
         } else {
-            // individeal
-            System.out.println("[GAMESTATE] Ronda INDIVIDUAL iniciada!");
-            teamBarriers = null; // Não usamos barreiras nesta ronda
+            teamBarriers = null;
         }
     }
 
@@ -146,7 +150,7 @@ public class GameState {
         return true;
     }  **/
 
-    public boolean receiveAnswer(String username, int optionIndex) {
+    public boolean recieveAnswer(String username, int optionIndex) {
         Team team;
         synchronized(this) {
             if (!roundActive || currentAnswers.containsKey(username)) return false;
@@ -155,8 +159,9 @@ public class GameState {
             team = findTeamOfPlayer(username);
         }
         if (team == null) return false;
-        // 2. Decide o caminho
-        if (teamBarriers != null) {
+
+        // 2. Decisao consaonte ronda
+        if (teamBarriers != null && isTeamRound) {
             return handleTeamAnswer(username, optionIndex, team);
         } else {
             return handleIndividualAnswer(username); // No individual o index já foi guardado
@@ -165,8 +170,8 @@ public class GameState {
 
     private boolean handleIndividualAnswer(String username) {
         int multiplier = 0;
-        if (semaforo != null) {
-            multiplier = semaforo.acquire();
+        if (latch != null) {
+            multiplier = latch.countdown();
         }
         synchronized(this) {
             answerBonus.put(username, multiplier);
@@ -190,22 +195,18 @@ public class GameState {
         synchronized(this) {
             answerBonus.put(username, points);
         }
-        // Avisa o contador global que este jogador acabou
-        if (semaforo != null) {
-            semaforo.acquire();
-        }
         return true;
     }
 
 
     //para gamehandler chamar waitForTimeout do semaforo
-    public void waitForRoundToFinish(long temporizador) throws InterruptedException {
-        if (semaforo != null){  //individual ou equipa, conta jogadores
-            semaforo.waitForTimeout(temporizador);
+    public void waitForRoundToFinish() throws InterruptedException {
+        if (latch != null){  //individual ou equipa, conta jogadores
+            latch.await();
         }
 
         //tempo acabou, forca abertura das barreiras de equipa para n ficar preso no wait
-        if(teamBarriers != null){
+        if(teamBarriers != null &&  isTeamRound){
             for(TeamBarrier b: teamBarriers.values()){
                 b.forceOpenBarrier();
             }
@@ -256,7 +257,6 @@ public class GameState {
         if (q == null) return Collections.emptyMap();
 
         Map<String, Integer> roundPoints = new HashMap<>();
-        boolean isTeamRound = q.isTeamQuestion(); // O tal boolean que querias usar
 
         // --- LÓGICA DE EQUIPA
         if (isTeamRound) {
@@ -265,7 +265,6 @@ public class GameState {
                 for (String player : team.getPlayers()) {
                     if (answerBonus.containsKey(player)) {
                         int points = answerBonus.get(player);
-
                         team.addPoints(points);
                         roundPoints.put(team.getTeamId(), points);
                         break; // Já processámos esta equipa, interrompe o loop dos jogadores e vai para a próxima equipa

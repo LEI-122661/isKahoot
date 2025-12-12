@@ -32,7 +32,7 @@ public class GameServer {
     private Thread acceptanceThread;
 
 
-    public void createRoom() {
+    public void createRoom(int numTeams, int numPlayersPerTeam) {
         String roomCode = generateRoomCode();
 
         String path = findQuizzesFile();
@@ -48,7 +48,7 @@ public class GameServer {
         }
 
         //cria sala
-        GameRoom room = new GameRoom(roomCode, questions);
+        GameRoom room = new GameRoom(roomCode, questions, numTeams, numPlayersPerTeam);
         synchronized (activeRooms){
             activeRooms.put(roomCode, room);
         }

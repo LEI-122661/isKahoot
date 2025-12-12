@@ -12,14 +12,15 @@ public class Client {
     private ObjectInputStream in;
     private GUI gui;
     private String username;
-
+    private final String teamID = null; // Deixa o servidor atribuir a equipa
     /**
      * Inicia o cliente com um username específico.
      *
      * @param username nome do jogador (ex: "Client1", "Client2")
      */
-    public void runClient(String username) {
+    public void runClient(String username, String teamID) {
         this.username = username;
+
         try {
             connectToServer();
             setStreams();
@@ -65,12 +66,10 @@ public class Client {
         System.out.print(">> Insere o CÓDIGO DA SALA (dado pelo servidor): ");
         String code = scanner.nextLine().trim().toUpperCase();
 
-        ClientInfo info = new ClientInfo(
-                username,        // nome: "Client1", "Client2", etc.
-                code,            // gameCode: null (servidor atribui)
-                null             // teamId: null (servidor atribui automaticamente)
-        );
-
+        ClientInfo info = new ClientInfo(username, code, teamID);
+        // nome: "ClientX" nome do user
+        // gameCode: "ABCD" código da sala
+        // teamID: "EquipaX" nome da equipa
         out.writeObject(info);  //serializa e envia o objeto ClientInfo por connction
         out.flush();            //enviar informacoes
         System.out.println("[CLIENT " + username + "] Informações enviadas: " + info);

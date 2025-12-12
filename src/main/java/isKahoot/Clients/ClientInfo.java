@@ -16,10 +16,10 @@ public class ClientInfo implements Serializable {
     
     /**
      * Construtor com informações básicas.
-     * 
+     *
      * @param username nome do jogador
      * @param gameCode código do jogo (pode ser null para agora)
-     * @param teamId ID da equipa solicitada (pode ser null, servidor atribui)
+     * @param teamId   ID da equipa solicitada (pode ser null, servidor atribui)
      */
     public ClientInfo(String username, String gameCode, String teamId) {
         this.username = username;
