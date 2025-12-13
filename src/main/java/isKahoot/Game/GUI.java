@@ -210,9 +210,6 @@ public class GUI extends JFrame {
         this.answerSender = sender;
     }
 
-    public void setNextSender(NextSender sender) {
-        // Não é usado nesta versão minimalista (resposta automática)
-    }
 
     /* ========== Lógica da Tela de Pergunta ========== */
 

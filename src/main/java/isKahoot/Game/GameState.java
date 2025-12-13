@@ -150,7 +150,7 @@ public class GameState {
         return true;
     }  **/
 
-    public boolean receiveAnswer(String username, int optionIndex) {
+    public boolean recieveAnswer(String username, int optionIndex) {
         Team team;
         synchronized(this) {
             if (!roundActive || currentAnswers.containsKey(username)) return false;
@@ -194,6 +194,9 @@ public class GameState {
         // Guarda os pontos finais da equipa
         synchronized(this) {
             answerBonus.put(username, points);
+        }
+        if (latch != null) {
+            latch.countdown();
         }
         return true;
     }

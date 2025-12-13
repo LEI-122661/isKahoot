@@ -192,7 +192,7 @@ public class GameServer {
             try {
                 while (acceptingClients) {
                     Socket clientSocket = server.accept();
-                    // ⭐ CORRIGIDO: Passar 3 parâmetros corretos
+                    //CORRIGIDO: Passar 3 parâmetros corretos
                     ConnectionHandler handler = new ConnectionHandler(clientSocket, ++clientCounter, this);
                     new Thread(handler).start();
                 }

@@ -124,14 +124,14 @@ public class ConnectionHandler extends Thread {
             if (requestedTeamId == null || requestedTeamId.equals("null")) {
                 System.out.println("[HANDLER] " + username + " rejeitado: teamId é obrigatório!");
                 sendMessage("ERROR:teamId obrigatório para entrar");
-                return;  // ❌ REJEITA - Não entra!
+                return;
             }
 
             // REGRA 2: Equipa tem de existir
             if (!teams.containsKey(requestedTeamId)) {
                 System.out.println("[HANDLER] " + username + " rejeitado: equipa '" + requestedTeamId + "' não existe!");
                 sendMessage("ERROR:Equipa inválida: " + requestedTeamId);
-                return;  // ❌ REJEITA
+                return;
             }
 
             // REGRA 3: Equipa tem de ter espaço (máximo 2)
@@ -139,7 +139,7 @@ public class ConnectionHandler extends Thread {
             if (team.getPlayerCount() >= 2) {
                 System.out.println("[HANDLER] " + username + " rejeitado: equipa '" + requestedTeamId + "' está cheia (2/2)!");
                 sendMessage("ERROR:Equipa cheia: " + requestedTeamId);
-                return;  // ❌ REJEITA
+                return;
             }
 
             // TUDO OK: Adiciona à equipa
@@ -191,7 +191,7 @@ public class ConnectionHandler extends Thread {
                     System.out.println("[HANDLER " + username + "] Resposta recebida: opção " + optionIndex);
 
                     // Registar resposta no GameState
-                    boolean accepted = gameState.receiveAnswer(username, optionIndex);
+                    boolean accepted = gameState.recieveAnswer(username, optionIndex);
                     if (accepted) {
                         System.out.println("[HANDLER " + username + "] Resposta aceite!");
                     } else {

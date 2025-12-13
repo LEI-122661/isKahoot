@@ -173,14 +173,7 @@ public class Client {
             });
 
             // Callback para avançar para próxima pergunta
-            gui.setNextSender(() -> {
-                try {
-                    out.writeObject("NEXT");
-                    out.flush();
-                } catch (IOException e) {
-                    System.err.println("[CLIENT " + username + "] Erro ao enviar NEXT: " + e.getMessage());
-                }
-            });
+
         });
     }
 

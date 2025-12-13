@@ -27,7 +27,7 @@ public class ModifiedCountdownLatch {
 
         count--;
 
-        if(count == 0){   //ultimo players respondeu
+        if(count == 0) {   //ultimo players respondeu
             notifyAll();
         }
 
@@ -42,7 +42,7 @@ public class ModifiedCountdownLatch {
     }
 
     //chamada pelo
-    public synchronized void await() throws  InterruptedException {
+   /** public synchronized void await() throws  InterruptedException {
         long startTime = System.currentTimeMillis();
         long remainingTime = waitperiod;
 
@@ -55,6 +55,30 @@ public class ModifiedCountdownLatch {
 
         if(remainingTime <= 0 && count>0){
             timedOut =true;
+        }
+    } */
+
+    /**
+     * Chamado pelo SERVIDOR para esperar pelo fim da ronda.
+     * Implementa o Timer interno de forma segura.
+     */
+
+    public synchronized void await() throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+
+        // Loop enquanto houver jogadores que ainda não responderam
+        while (count > 0) {
+            long timeElapsed = System.currentTimeMillis() - startTime;
+            long remaining = waitperiod - timeElapsed;
+
+            // 1. Verificação de Segurança: Se o tempo acabou (ou ficou negativo)
+            if (remaining <= 0) {
+                timedOut = true;
+                break; // Sai do loop IMEDIATAMENTE. Não tenta fazer wait(-1).
+            }
+
+            // 2. Espera apenas o tempo que sobra
+            wait(remaining);
         }
     }
 }
