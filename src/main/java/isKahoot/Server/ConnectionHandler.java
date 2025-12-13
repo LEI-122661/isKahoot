@@ -172,7 +172,7 @@ public class ConnectionHandler extends Thread {
                     System.out.println("[HANDLER " + username + "] Resposta recebida: opção " + optionIndex);
 
                     // Registar resposta no GameState
-                    boolean accepted = gameState.recieveAnswer(username, optionIndex);
+                    boolean accepted = gameState.receiveAnswer(username, optionIndex);
                     if (accepted) {
                         System.out.println("[HANDLER " + username + "] Resposta aceite!");
                     } else {
