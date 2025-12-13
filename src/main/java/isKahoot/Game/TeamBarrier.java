@@ -46,7 +46,7 @@ public class TeamBarrier {
 
             //espera o outro elemento da equipa responda
             while (!barrierOpen){
-                wait(30000);
+                wait();
             }
 
         } else {

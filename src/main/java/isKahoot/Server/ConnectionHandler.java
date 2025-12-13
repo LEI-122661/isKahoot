@@ -121,7 +121,7 @@ public class ConnectionHandler extends Thread {
         if(teams == null) return;
         synchronized (teams) {
             // REGRA 1: teamId DEVE ser não-null
-            if (requestedTeamId == null) {
+            if (requestedTeamId == null || requestedTeamId.equals("null")) {
                 System.out.println("[HANDLER] " + username + " rejeitado: teamId é obrigatório!");
                 sendMessage("ERROR:teamId obrigatório para entrar");
                 return;  // ❌ REJEITA - Não entra!

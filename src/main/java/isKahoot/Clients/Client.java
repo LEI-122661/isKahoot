@@ -12,7 +12,7 @@ public class Client {
     private ObjectInputStream in;
     private GUI gui;
     private String username;
-    private final String teamID = null; // Deixa o servidor atribuir a equipa
+    private String teamID;
     /**
      * Inicia o cliente com um username específico.
      *
@@ -20,6 +20,7 @@ public class Client {
      */
     public void runClient(String username, String teamID) {
         this.username = username;
+        this.teamID = teamID;
 
         try {
             connectToServer();
