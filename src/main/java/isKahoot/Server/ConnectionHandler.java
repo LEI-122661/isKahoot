@@ -16,6 +16,7 @@ public class ConnectionHandler extends Thread {
 
     private final Socket connection;
     private final int clientId;
+    private String requestedTeamId;
     private GameServer gameServer;
 
     private Map<String, Team> teams; // referência às equipas do jogo
@@ -101,6 +102,7 @@ public class ConnectionHandler extends Thread {
             if (obj instanceof ClientInfo) {
                 ClientInfo info = (ClientInfo) obj;
                 this.username = info.getUsername();
+                this.requestedTeamId = info.getTeamId();
                 System.out.println("[HANDLER] Recebido ClientInfo: " + info);
                 System.out.println("[HANDLER] Username atribuído: " + username);
                 return info;
@@ -115,24 +117,41 @@ public class ConnectionHandler extends Thread {
      * Atribui automaticamente o cliente a uma equipa disponível.
      * Procura pela primeira equipa que tem menos de 2 jogadores. */
 
-    //temos 4 threads a correr, cada um com o seu connection handler, a tentar acerder a equipas ao mesmo tempo
     public void assignToTeam() {
         if(teams == null) return;
         synchronized (teams) {
-            for (String teamId : teams.keySet()) {
-                Team team = teams.get(teamId);
-                if (team.getPlayerCount() < 2) {
-                    // Encontrou uma equipa com espaço
-                    if (team.addPlayer(username)) {
-                        this.assignedTeamId = teamId;
-                        System.out.println("[HANDLER] " + username + " atribuído à equipa: " + teamId);
-                        sendMessage("TEAM_ASSIGNED:" + teamId); // Avisa o cliente
-                        return;
-                    }
-                }
+            // REGRA 1: teamId DEVE ser não-null
+            if (requestedTeamId == null) {
+                System.out.println("[HANDLER] " + username + " rejeitado: teamId é obrigatório!");
+                sendMessage("ERROR:teamId obrigatório para entrar");
+                return;  // ❌ REJEITA - Não entra!
+            }
+
+            // REGRA 2: Equipa tem de existir
+            if (!teams.containsKey(requestedTeamId)) {
+                System.out.println("[HANDLER] " + username + " rejeitado: equipa '" + requestedTeamId + "' não existe!");
+                sendMessage("ERROR:Equipa inválida: " + requestedTeamId);
+                return;  // ❌ REJEITA
+            }
+
+            // REGRA 3: Equipa tem de ter espaço (máximo 2)
+            Team team = teams.get(requestedTeamId);
+            if (team.getPlayerCount() >= 2) {
+                System.out.println("[HANDLER] " + username + " rejeitado: equipa '" + requestedTeamId + "' está cheia (2/2)!");
+                sendMessage("ERROR:Equipa cheia: " + requestedTeamId);
+                return;  // ❌ REJEITA
+            }
+
+            // TUDO OK: Adiciona à equipa
+            if (team.addPlayer(username)) {
+                this.assignedTeamId = requestedTeamId;
+                System.out.println("[HANDLER] " + username + " atribuído à equipa: " + requestedTeamId);
+                sendMessage("TEAM_ASSIGNED:" + requestedTeamId);
             }
         }
     }
+
+
 
     /**
      * Processa mensagens do cliente durante o jogo.

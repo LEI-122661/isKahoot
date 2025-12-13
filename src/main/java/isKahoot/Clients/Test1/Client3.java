@@ -1,4 +1,6 @@
-package isKahoot.Clients;
+package isKahoot.Clients.Test1;
+
+import isKahoot.Clients.Client;
 
 /**
  * Cliente 3 do jogo IsKahoot.

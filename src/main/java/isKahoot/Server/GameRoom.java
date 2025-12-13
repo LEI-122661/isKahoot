@@ -83,7 +83,7 @@ public class GameRoom {
 
         // Criar equipas
         for (int i = 1; i <= numTeams; i++) {
-            String teamId = "team" + i;
+            String teamId = "equipa" + i;
             teams.put(teamId, new Team(teamId, "Team " + i));
         }
 

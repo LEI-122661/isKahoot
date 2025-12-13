@@ -1,4 +1,6 @@
-package isKahoot.Clients;
+package isKahoot.Clients.Test2;
+
+import isKahoot.Clients.Client;
 
 /**
  * Client1 - Jogador 1 (Equipa 1)
@@ -7,14 +9,14 @@ package isKahoot.Clients;
  * Execução: java Client1
  * Exemplo: java Client1
  */
-public class Client11 {
+public class Frank3 {
 
     public static void main(String[] args) {
         // ✅ Valores pré-configurados
-        String username = "alice";          // Nome do jogador
-        String teamId = "equipa1";          // Equipa 1
+        String username = "frank";          // Nome do jogador
+        String teamId = "equipa3";          // Equipa 1
 
-        System.out.println("Client1 - " + username);
+        System.out.println("Client - " + username);
         System.out.println("Equipa: " + teamId);
 
         // ✅ Cria instância e chama runClient
