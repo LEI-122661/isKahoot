@@ -58,7 +58,7 @@ public class GameHandler extends Thread {
 
                 // 5. Pequena pausa para o utilizador ver o placar
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;

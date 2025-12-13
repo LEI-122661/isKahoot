@@ -44,21 +44,17 @@ public class ModifiedCountdownLatch {
     //chamada pelo
     public synchronized void await() throws  InterruptedException {
         long startTime = System.currentTimeMillis();
-        long remainngTime = waitperiod;
+        long remainingTime = waitperiod;
 
         while (!timedOut && count>0){
-            wait(remainngTime);
+            wait(remainingTime);
 
             long tempoDecorrido = System.currentTimeMillis() - startTime;
-            remainngTime = waitperiod - tempoDecorrido;
+            remainingTime = waitperiod - tempoDecorrido;
         }
 
-        if(remainngTime <= 0 && count>0){
+        if(remainingTime <= 0 && count>0){
             timedOut =true;
         }
     }
-
-
-
-
 }

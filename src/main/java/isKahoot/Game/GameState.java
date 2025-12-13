@@ -150,7 +150,7 @@ public class GameState {
         return true;
     }  **/
 
-    public boolean recieveAnswer(String username, int optionIndex) {
+    public boolean receiveAnswer(String username, int optionIndex) {
         Team team;
         synchronized(this) {
             if (!roundActive || currentAnswers.containsKey(username)) return false;
