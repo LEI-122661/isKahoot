@@ -23,12 +23,10 @@ public class GameRoom {
     private Integer numPlayersPerTeam;
     private int maxPlayers;
 
-    // ⭐ NOVO: Controlo manual do servidor
+    //NOVO: Controlo manual do servidor
     private boolean isReadyToStart = false;
 
-    /**
-     * Construtor do GameRoom.
-     */
+
     public GameRoom(String roomCode, List<Question> questions, int numTeams, int numPlayersPerTeam) {
         this.roomCode = roomCode;
         this.questions = questions;
@@ -38,10 +36,7 @@ public class GameRoom {
         this.isReadyToStart = false;  // Começa desautorizado
     }
 
-    /**
-     * Adiciona um jogador à sala.
-     * Retorna false se a sala está cheia ou o jogo já começou.
-     */
+    // Adiciona um jogador à sala, retorna false se a sala está cheia ou o jogo já começou.
     public synchronized boolean addPlayer(ConnectionHandler player) {
         if (isGameRunning) {
             return false;  // Jogo já começou
@@ -58,10 +53,7 @@ public class GameRoom {
         return true;
     }
 
-    /**
-     * Inicia o jogo quando autorizado pelo servidor.
-     * NÃO começa automaticamente!
-     */
+    //inicia jogo com autorizacao do server
     public synchronized void startGame() {
         if (isGameRunning) {
             System.out.println("[ROOM " + roomCode + "] ❌ Jogo já está em execução!");
@@ -100,16 +92,12 @@ public class GameRoom {
         isGameRunning = true;
     }
 
-    /**
-     * ⭐ NOVO: Verifica se pode começar (todos conectados e autorizados).
-     */
+
     public synchronized boolean canStartGame() {
         return !isGameRunning && players.size() == maxPlayers;
     }
 
-    /**
-     * ⭐ NOVO: Autoriza o servidor para começar o jogo.
-     */
+
     public synchronized void authorizeStart() {
         if (!isGameRunning && players.size() == maxPlayers) {
             isReadyToStart = true;
@@ -120,23 +108,17 @@ public class GameRoom {
         }
     }
 
-    /**
-     * ⭐ NOVO: Retorna quantos jogadores faltam.
-     */
+
     public synchronized int getRemainingPlayers() {
         return maxPlayers - players.size();
     }
 
-    /**
-     * ⭐ NOVO: Verifica se sala está autorizada.
-     */
+
     public synchronized boolean isReady() {
         return isReadyToStart;
     }
 
-    /**
-     * ⭐ NOVO: Retorna o estado da sala.
-     */
+
     public synchronized String getStatus() {
         String status = isGameRunning ? "🎮 Em curso" : "⏸️ Aguardando";
         return "[" + roomCode + "] " + status + " (" + players.size() + "/" + maxPlayers + " jogadores)";

@@ -8,8 +8,6 @@ import java.awt.event.MouseEvent;
 
 /**
  * GUI melhorada e minimalista para o IsKahoot.
- * Sem botão avançar (desnecessário).
- * Design limpo e elegante.
  */
 public class GUI extends JFrame {
 
@@ -24,7 +22,7 @@ public class GUI extends JFrame {
     // Tela Lobby
     private JPanel lobbyPanel;
 
-    // Tela Pergunta
+    // Tela Question
     private final JPanel questionPanel;
     private final JLabel questionLabel;
     private final JButton[] optionButtons; // em vez de RadioButtons
@@ -56,7 +54,7 @@ public class GUI extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Criar as telas (ordem importa)
+        // Criar as telas (ordem importa) !!
         createLobbyScreen();
 
         // Tela de pergunta (inicializar aqui para usar no construtor)
@@ -236,7 +234,7 @@ public class GUI extends JFrame {
             optionButtons[selectedOption].setBackground(PRIMARY_COLOR);
         }
 
-        // Selecionar novo
+        // Selecionar de novo
         selectedOption = index;
         optionButtons[index].setBackground(SELECTED_COLOR);
 

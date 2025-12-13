@@ -113,9 +113,7 @@ public class ConnectionHandler extends Thread {
         return null;
     }
 
-    /**
-     * Atribui automaticamente o cliente a uma equipa disponível.
-     * Procura pela primeira equipa que tem menos de 2 jogadores. */
+
 
     public void assignToTeam() {
         if(teams == null) return;
@@ -253,16 +251,13 @@ public class ConnectionHandler extends Thread {
         }
     }
 
-    /**
-     * Retorna o nome do jogador.
-     */
+
     public String getUsername() {
         return username;
     }
 
-    /**
-     * Retorna a equipa atribuída.
-     */
+
+
     public String getAssignedTeamId() {
         return assignedTeamId;
     }

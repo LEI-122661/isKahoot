@@ -4,12 +4,6 @@ package isKahoot.Game;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Barreira para coordenar as respostas da equip
- * Espera que os 2 elementos da equipa respondam.
- * Calcula a pontuação conjunta (bónus se ambos acertarem).
- * Suporta fim por timeout.
- */
 public class TeamBarrier {
 
     private final int teamSize;
@@ -58,10 +52,7 @@ public class TeamBarrier {
         return teamScoreFinal;
     }
 
-/**
- * Chamado pelo Servidor se o tempo da ronda acabar
- * Força a abertura da barreira mesmo que falte alguem
- */
+    // caso falte aguem responder, tem de abirr para ir a proxima pergunta
     public synchronized void forceOpenBarrier(){
         if(!barrierOpen){
             calculateTeamScore();

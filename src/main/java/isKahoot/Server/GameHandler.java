@@ -124,9 +124,7 @@ public class GameHandler extends Thread {
 
     }
 
-    /**
-     * Calcula os pontos da ronda.
-     */
+
     private void calculatePoints() {
         Map<String, Integer> roundPoints = gameState.endRoundAndComputePoints();
 
@@ -136,9 +134,7 @@ public class GameHandler extends Thread {
         }
     }
 
-    /**
-     * Envia o placar atualizado a todos os clientes.
-     */
+    //Envia o placar atualizado a todos os clientes.
     private void sendScoreboard() {
         Map<String, Integer> totalScores = gameState.getTotalScores();
 
@@ -151,9 +147,9 @@ public class GameHandler extends Thread {
         System.out.println("[GAME] Placar enviado: " + scoreMsg);
     }
 
-    /**
-     * Envia o placar final.
-     */
+
+
+
     private void sendFinalScoreboard() {
         Map<String, Integer> totalScores = gameState.getTotalScores();
 
@@ -166,9 +162,8 @@ public class GameHandler extends Thread {
         System.out.println("[GAME] Placar final enviado: " + finalMsg);
     }
 
-    /**
-     * Envia uma mensagem a todos os clientes.
-     */
+
+
     private void broadcast(String msg) {
         for (ConnectionHandler ch : clients) {
             ch.sendMessage(msg);

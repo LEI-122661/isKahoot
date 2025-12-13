@@ -23,11 +23,8 @@ public class Team implements Serializable {
     private final List<String> players;
     private boolean ready; // indica se a equipa está pronta para jogar
 
-    /**
-     * Construtor da equipa.
-     * @param teamId identificador único da equipa (ex: "Team1", "Team2")
-     * @param teamName nome da equipa (ex: "Python Squad", "Java Masters")
-     */
+
+
     public Team(String teamId, String teamName) {
         this.teamId = Objects.requireNonNull(teamId, "teamId não pode ser null");
         this.teamName = Objects.requireNonNull(teamName, "teamName não pode ser null");
@@ -76,60 +73,42 @@ public class Team implements Serializable {
         return removed;
     }
 
-    /**
-     * Verifica se um jogador pertence a esta equipa.
-     *
-     * @param playerName nome do jogador
-     * @return true se o jogador está na equipa
-     */
     public synchronized boolean hasPlayer(String playerName) {
         return players.contains(playerName);
     }
 
     /**
      * Retorna a lista de jogadores (cópia imutável).
-     *
      * @return lista de nomes dos jogadores
      */
     public synchronized List<String> getPlayers() {
         return Collections.unmodifiableList(new ArrayList<>(players));
     }
 
-    /**
-     * Retorna o número de jogadores na equipa.
-     *
-     * @return número de jogadores
-     */
+
     public synchronized int getPlayerCount() {
         return players.size();
     }
 
-    /**
-     * Retorna a pontuação total da equipa.
-     *
-     * @return pontuação acumulada
-     */
+
+
+
     public synchronized int getTotalScore() {
         return totalScore;
     }
 
-    /**
-     * Retorna a pontuação da ronda atual.
-     *
-     * @return pontos ganhos nesta ronda
-     */
+
+
+
     public synchronized int getRoundScore() {
         return roundScore;
     }
 
-    /**
-     * Atualiza a pontuação total da equipa.
-     * Adiciona pontos ao total e à ronda.
-     *
-     * @param points pontos a adicionar
-     */
+
+
+
     public synchronized void addPoints(int points) {
-        if (points < 0) {
+        if (points <0) {
             System.out.println("[TEAM] Pontos não podem ser negativos.");
             return;
         }
@@ -138,12 +117,7 @@ public class Team implements Serializable {
         System.out.println("[TEAM] Equipa " + teamName + " ganhou " + points + " pontos. Total: " + totalScore);
     }
 
-    /**
-     * Define a pontuação total diretamente.
-     * Útil para resets ou correções.
-     *
-     * @param score nova pontuação total
-     */
+
     public synchronized void setTotalScore(int score) {
         if (score < 0) {
             System.out.println("[TEAM] Pontos não podem ser negativos.");
@@ -152,10 +126,9 @@ public class Team implements Serializable {
         this.totalScore = score;
     }
 
-    /**
-     * Reseta a pontuação da ronda para 0.
-     * Chamada no início de cada nova ronda.
-     */
+
+
+
     public synchronized void resetRoundScore() {
         this.roundScore = 0;
     }

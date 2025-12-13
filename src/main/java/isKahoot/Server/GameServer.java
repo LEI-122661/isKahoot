@@ -24,7 +24,7 @@ public class GameServer {
     private Map<String, GameRoom> activeRooms = new HashMap<>();
     private boolean acceptingClients = false;
     private Thread acceptanceThread;
-    private int clientCounter = 0;  // ⭐ ADICIONADO: Contador para IDs únicos
+    private int clientCounter = 0;  //ADICIONADO: Contador para IDs únicos
 
     /**
      * Cria uma nova sala de jogo.
@@ -58,7 +58,7 @@ public class GameServer {
     }
 
     /**
-     * ⭐ MODIFICADO: Inicia o jogo com verificações.
+     * MODIFICADO: Inicia o jogo com verificações.
      */
     public void startGame(String roomCode) {
         GameRoom room;
