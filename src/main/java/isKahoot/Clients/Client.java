@@ -14,7 +14,7 @@ public class Client {
     private String username;
     private String teamID;
 
-    //Inicia o client com um username específico
+    //Inicia o client com um username especifico, temos classes dos nossos clientes
     public void runClient(String username, String teamID) {
         this.username = username;
         this.teamID = teamID;
