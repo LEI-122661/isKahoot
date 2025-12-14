@@ -40,10 +40,10 @@ public class GUI extends JFrame {
     private boolean answered;
 
     // Cores minimalistas
-    private static final Color PRIMARY_COLOR = new Color(50, 150, 200);      // Azul
+    private static final Color OPTIONS_COLOR = new Color(50, 150, 200);      // Azul
     private static final Color HOVER_COLOR = new Color(70, 170, 220);        // Azul claro
-    private static final Color SELECTED_COLOR = new Color(100, 200, 100);    // Verde
-    private static final Color WRONG_COLOR = new Color(220, 80, 80);         // Vermelho
+    private static final Color GREEN = new Color(100, 200, 100);
+    private static final Color RED = new Color(220, 80, 80);
     private static final Color BG_COLOR = new Color(245, 245, 247);          // Cinzento muito claro
     private static final Color TEXT_COLOR = new Color(40, 40, 50);           // Cinzento escuro
 
@@ -62,7 +62,7 @@ public class GUI extends JFrame {
         questionPanel.setBackground(BG_COLOR);
         questionPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // ===== TOP: Pergunta e Timer =====
+        //  TOP: Pergunta e Timer
         JPanel topPanel = new JPanel(new BorderLayout(0, 10));
         topPanel.setBackground(BG_COLOR);
 
@@ -70,17 +70,17 @@ public class GUI extends JFrame {
         questionLabel.setFont(new Font("Arial", Font.BOLD, 26));
         questionLabel.setForeground(TEXT_COLOR);
 
-        timerLabel = new JLabel("30s", SwingConstants.CENTER);
+        timerLabel= new JLabel("30s", SwingConstants.CENTER);
         timerLabel.setFont(new Font("Arial", Font.PLAIN, 18));
-        timerLabel.setForeground(PRIMARY_COLOR);
+        timerLabel.setForeground(OPTIONS_COLOR);
 
         topPanel.add(questionLabel, BorderLayout.CENTER);
         topPanel.add(timerLabel, BorderLayout.SOUTH);
 
         questionPanel.add(topPanel, BorderLayout.NORTH);
 
-        // ===== CENTER: Opções (botões grandes) =====
-        JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 0, 12));
+        // CENTER: Opções botões grandes
+        JPanel optionsPanel =new JPanel(new GridLayout(4, 1, 0, 12));
         optionsPanel.setBackground(BG_COLOR);
 
         optionButtons = new JButton[4];
@@ -91,7 +91,7 @@ public class GUI extends JFrame {
 
         questionPanel.add(optionsPanel, BorderLayout.CENTER);
 
-        // ===== BOTTOM: Placar =====
+        // BOTTOM: Placar
         scoreLabel = new JLabel("Pontuação: --", SwingConstants.CENTER);
         scoreLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         scoreLabel.setForeground(new Color(100, 100, 110));
@@ -110,7 +110,7 @@ public class GUI extends JFrame {
         showLobby();
     }
 
-    /* ========== Criação das Telas ========== */
+    /*  Criação das Telas  */
 
     private void createLobbyScreen() {
         lobbyPanel = new JPanel(new BorderLayout());
@@ -119,7 +119,7 @@ public class GUI extends JFrame {
 
         JLabel titleLabel = new JLabel("IsKahoot", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 48));
-        titleLabel.setForeground(PRIMARY_COLOR);
+        titleLabel.setForeground(OPTIONS_COLOR);
 
         JLabel lobbyLabel = new JLabel("À espera do jogo começar...", SwingConstants.CENTER);
         lobbyLabel.setFont(new Font("Arial", Font.PLAIN, 24));
@@ -135,12 +135,12 @@ public class GUI extends JFrame {
         JButton btn = new JButton();
         btn.setFont(new Font("Arial", Font.PLAIN, 16));
         btn.setForeground(Color.WHITE);
-        btn.setBackground(PRIMARY_COLOR);
+        btn.setBackground(OPTIONS_COLOR);
         btn.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        int finalIndex = index;
+        int finalIndex =index;
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -152,7 +152,7 @@ public class GUI extends JFrame {
             @Override
             public void mouseExited(MouseEvent e) {
                 if (!answered && selectedOption != finalIndex) {
-                    btn.setBackground(PRIMARY_COLOR);
+                    btn.setBackground(OPTIONS_COLOR);
                 }
             }
         });
@@ -168,9 +168,9 @@ public class GUI extends JFrame {
         finalPanel.setBackground(BG_COLOR);
         finalPanel.setBorder(new EmptyBorder(60, 40, 60, 40));
 
-        JLabel titleLabel = new JLabel("Resultado Final", SwingConstants.CENTER);
+        JLabel titleLabel =new JLabel("Resultado Final", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
-        titleLabel.setForeground(PRIMARY_COLOR);
+        titleLabel.setForeground(OPTIONS_COLOR);
 
         finalScoreLabel = new JLabel("Pontuação: --", SwingConstants.CENTER);
         finalScoreLabel.setFont(new Font("Arial", Font.PLAIN, 28));
@@ -187,8 +187,8 @@ public class GUI extends JFrame {
         cardPanel.add(finalPanel, SCREEN_FINAL);
     }
 
-    /* ========== Métodos Públicos ========== */
 
+//metodos de mostrar os diferentes cards
     public void showLobby() {
         cardLayout.show(cardPanel, SCREEN_LOBBY);
     }
@@ -209,17 +209,16 @@ public class GUI extends JFrame {
     }
 
 
-    /* ========== Lógica da Tela de Pergunta ========== */
 
+    // Logica das perguntas!!
     private void showQuestion(String questionText, String[] opts) {
-        // Usa HTML para word wrap em JLabel
         questionLabel.setText("<html><body style='width: 600px'>"
                 + questionText + "</body></html>");
 
         for (int i = 0; i < 4; i++) {
             optionButtons[i].setText(opts[i]);
             optionButtons[i].setEnabled(true);
-            optionButtons[i].setBackground(PRIMARY_COLOR);
+            optionButtons[i].setBackground(OPTIONS_COLOR);
         }
 
         answered = false;
@@ -229,24 +228,23 @@ public class GUI extends JFrame {
     private void selectOption(int index) {
         if (answered) return;
 
-        // Desselecionar anterior
+        // Dlimpar selecao anterior
         if (selectedOption >= 0) {
-            optionButtons[selectedOption].setBackground(PRIMARY_COLOR);
+            optionButtons[selectedOption].setBackground(OPTIONS_COLOR);
         }
 
         // Selecionar de novo
         selectedOption = index;
-        optionButtons[index].setBackground(SELECTED_COLOR);
+        optionButtons[index].setBackground(GREEN);
 
-        // Enviar resposta automaticamente (sem botão)
+        // Enviar resposta automaticamente
         answered = true;
 
-        // Desabilitar outras opções
+        // bloq das outras opcoes, para nao mudar
         for (int i = 0; i < 4; i++) {
             optionButtons[i].setEnabled(false);
         }
-
-        if (answerSender != null) {
+        if (answerSender !=null) {
             answerSender.sendAnswer(index);
         }
     }
@@ -278,11 +276,11 @@ public class GUI extends JFrame {
     public void updateTimer(int secondsLeft) {
         // Cor muda com urgência
         if (secondsLeft <= 5) {
-            timerLabel.setForeground(WRONG_COLOR);
+            timerLabel.setForeground(RED);
         } else if (secondsLeft <= 10) {
             timerLabel.setForeground(new Color(220, 150, 50));
         } else {
-            timerLabel.setForeground(PRIMARY_COLOR);
+            timerLabel.setForeground(OPTIONS_COLOR);
         }
 
         timerLabel.setText(secondsLeft + "s");

@@ -139,13 +139,13 @@ public class GameState {
             TeamBarrier barrier = teamBarriers.get(team.getTeamId());
             if (barrier != null) {
                 // BLOQUEANTE: Espera pelo colega
-                points = barrier.submitAnswer(optionIndex);
+                points = barrier.submitAnswer(optionIndex);   //pontos recebidos da barreira
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
         }
-        // Guarda os pontos finias da equipa
+        // Guarda os pontos finias da equipa, na answerbonus
         synchronized(this) {
             answerBonus.put(username, points);
         }
@@ -156,7 +156,7 @@ public class GameState {
     }
 
 
-    //para gamehandler chamar waitForTimeout do semaforo
+    //para gamehandler chamar waitForTimeout
     public void waitForRoundToFinish() throws InterruptedException {
         if (latch != null){  //individual ou equipa, conta jogadores
             latch.await();
@@ -179,7 +179,7 @@ public class GameState {
 
         Map<String, Integer> roundPoints = new HashMap<>();
 
-        // --- LÓGICA DE EQUIPA
+        // LÓGICA DE EQUIPA
         if (isTeamRound) {
             for (Team team : teams.values()) {
                 // Tenta encontrar UM jogador desta equipa que tenha registo de bónus/pontos, 1 pq na barrier os dois recebem mesma pontuacao
@@ -194,11 +194,11 @@ public class GameState {
             }
 
         } else {
-            // --- LÓGICA INDIVIDUAL
-            // Aqui temos de somar o esforço individual de cada jogador
+            // -LÓGICA INDIVIDUAL
+            // Aqui temos de somar os pontos de cada jogador
             int correct = q.getCorrect();
             int pointsPerCorrect = q.getPoints();
-            for (Map.Entry<String, Integer> entry : currentAnswers.entrySet()) {  //por cada membro da equipa
+            for (Map.Entry<String, Integer> entry : currentAnswers.entrySet()) {
                 String username = entry.getKey();
                 int answer = entry.getValue();
                 Team team = findTeamOfPlayer(username);
@@ -220,10 +220,9 @@ public class GameState {
         return roundPoints;
     }
 
-    /**
-     * Avança para a próxima pergunta.
-     * Retorna true se ainda há perguntas, false se acabou o jogo.
-     */
+
+
+    // false de nao ha mais perguntas
     public boolean nextQuestion() {
         if (currentIndex < questions.size() - 1) {
             currentIndex++;
@@ -233,20 +232,18 @@ public class GameState {
         return false;
     }
 
-    /**
-     * Retorna placar total: teamId -> score total.
-     */
+
+
+    // pontoacao final, procura teamid
     public Map<String, Integer> getTotalScores() {
         Map<String, Integer> totals = new HashMap<>();
         for (Team t : teams.values()) {
-            totals.put(t.getTeamId(), t.getTotalScore()); // CORRIGIDO: era getScore
+            totals.put(t.getTeamId(), t.getTotalScore());
         }
         return totals;
     }
 
-    /**
-     * Retorna placar da ronda: teamId -> pontos nesta ronda.
-     */
+
     public Map<String, Integer> getRoundScores() {
         Map<String, Integer> roundScores = new HashMap<>();
         for (Team t : teams.values()) {
@@ -255,30 +252,22 @@ public class GameState {
         return roundScores;
     }
 
-    /**
-     * Retorna todas as equipas.
-     */
+
     public Collection<Team> getTeams() {
         return teams.values();
     }
 
-    /**
-     * Retorna uma equipa pelo ID.
-     */
+
     public Team getTeam(String teamId) {
         return teams.get(teamId);
     }
 
-    /**
-     * Retorna o número de jogadores que responderam.
-     */
+
     public int getAnswerCount() {
         return currentAnswers.size();
     }
 
-    /**
-     * Retorna o número de jogadores ativos.
-     */
+
     public int getActivePlayers() {
         int count = 0;
         for (Team t : teams.values()) {
@@ -287,11 +276,9 @@ public class GameState {
         return count;
     }
 
-    // ============= Helpers =============
 
-    /**
-     * Encontra a equipa de um jogador.
-     */
+
+    //procura a equipa de um jogadpr
     private Team findTeamOfPlayer(String username) {
         for (Team t : teams.values()) {
             if (t.hasPlayer(username)) return t;

@@ -10,10 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * Servidor principal do jogo IsKahoot.
- * Aceita conexões de clientes e coordena o fluxo do jogo.
- */
+//Servidor principal do jogo IsKahoot, sceita conexões de clientes e coordena o fluxo do jogo
+
 public class GameServer {
 
     public static final int PORT = 12025;
@@ -23,7 +21,7 @@ public class GameServer {
     private Map<String, GameRoom> activeRooms = new HashMap<>();
     private boolean acceptingClients = false;
     private Thread acceptanceThread;
-    private int clientCounter = 0;  //ADICIONADO: Contador para IDs únicos
+    private int clientCounter = 0;  //ADICIONADO Contador para IDs únicos
 
     private final List<DealWithClient> allClients = new ArrayList<>();
 
@@ -33,7 +31,7 @@ public class GameServer {
         String path = findQuizzesFile();
 
         if (path == null) {
-            System.err.println("[SERVER] ERRO: Ficheiro quizzes.json não encontrado!");
+            System.err.println("[SERVER] ERRO: Ficheiro quizzes.json não encontrado :/ ");
             return;
         }
 
@@ -72,11 +70,10 @@ public class GameServer {
 
         // Verifica se pode começar
         if (!room.canStartGame()) {
-            System.out.println("[SERVER] ❌ Erro: Sala não tem todos os jogadores conectados!");
-            System.out.println("[SERVER] ⏳ Esperando " + room.getRemainingPlayers() + " jogador(es)");
+            System.out.println("[SERVER] Erro: Sala não tem todos os jogadores conectados!");
+            System.out.println("[SERVER] Esperando " + room.getRemainingPlayers() + " jogador(es)");
             return;
         }
-
         // Autoriza e inicia
         room.authorizeStart();
         room.startGame();
@@ -177,11 +174,16 @@ public class GameServer {
         if (acceptingClients) return;
 
         acceptingClients = true;
-        acceptanceThread = new Thread(() -> {
+        acceptanceThread = new Thread(() -> {  //server.accept e metoto bloq, sem esta thread
+                                               //o resto da tui nao funcionava, comandos list, start...
             try {
                 while (acceptingClients) {
+
+                    //
                     Socket clientSocket = server.accept();
-                    //CORRIGIDO: Passar 3 parâmetros corretos
+
+                    //CORRIGIDO: Passar 3 parametros
+                    //cria nova thraed respondavel por gerir comunicacao com cliente
                     DealWithClient handler = new DealWithClient(clientSocket, ++clientCounter, this);
                     synchronized (allClients){
                         allClients.add(handler);

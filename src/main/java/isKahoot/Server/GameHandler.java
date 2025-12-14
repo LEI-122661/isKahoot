@@ -6,22 +6,17 @@ import isKahoot.Game.Question;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Thread que gere o ciclo do jogo.
- * Envia perguntas, aguarda respostas, calcula pontos e avança para a próxima ronda.
- */
+//Thread que gere o ciclo do jogo
+ //Envia perguntas, aguarda respostas, calcula pontos e avança para a próxima ronda
 public class GameHandler extends Thread {
 
     private final List<DealWithClient> clients;
     private final GameState gameState;
     private static final long QUESTION_TIMEOUT = 30000; // 30 segundos
 
-    /**
-     * Construtor do GameHandler.
-     *
-     * @param clients lista de clientes conectados
-     * @param gameState estado do jogo
-     */
+
+
+
     public GameHandler(List<DealWithClient> clients, GameState gameState) {
         this.clients = clients;
         this.gameState = gameState;
@@ -82,9 +77,7 @@ public class GameHandler extends Thread {
         }
     }
 
-    /**
-     * Envia a pergunta a todos os clientes.
-     */
+    //envia a todos os clients, usa broadcast
     private void sendQuestion(Question q) {
         String questionMsg = "SCREEN:QUESTION:" +
                 q.getQuestion() + "|" +
@@ -92,18 +85,18 @@ public class GameHandler extends Thread {
                 q.getOptions()[1] + "|" +
                 q.getOptions()[2] + "|" +
                 q.getOptions()[3] + "|" +
-                30; // 30 segundos
+                30; // time
 
         broadcast(questionMsg);
         System.out.println("[GAME] Pergunta enviada a " + clients.size() + " clientes");
     }
 
-    /**
-     * Aguarda respostas dos clientes com timeout.
-     * Termina quando:
-     * - Todos os jogadores responderam, OU
-     * - O timeout expira
-     */
+
+
+
+
+
+    // espera pelas respostas, termina quando tempo esperia ou todos ja responderam
     private void waitForAnswers() {
         int expectedAnswers = gameState.getActivePlayers();
 

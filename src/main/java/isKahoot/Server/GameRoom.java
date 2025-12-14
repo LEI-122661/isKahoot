@@ -5,10 +5,7 @@ import isKahoot.Game.Question;
 import isKahoot.Game.Team;
 import java.util.*;
 
-/**
- * GameRoom representa uma sala de jogo IsKahoot.
- * Gestiona jogadores, equipas, e o ciclo do jogo.
- */
+
 public class GameRoom {
 
     private String roomCode;
@@ -56,22 +53,22 @@ public class GameRoom {
     //inicia jogo com autorizacao do server
     public synchronized void startGame() {
         if (isGameRunning) {
-            System.out.println("[ROOM " + roomCode + "] ❌ Jogo já está em execução!");
+            System.out.println("[ROOM " + roomCode + "] Jogo já está em execução!");
             return;
         }
 
         if (!isReadyToStart) {
-            System.out.println("[ROOM " + roomCode + "] ❌ Sala não está autorizada para começar!");
+            System.out.println("[ROOM " + roomCode + "] Sala não está autorizada para começar!");
             System.out.println("[ROOM " + roomCode + "] Jogadores: " + players.size() + "/" + maxPlayers);
             return;
         }
 
         if (players.isEmpty()) {
-            System.out.println("[ROOM " + roomCode + "] ❌ Nenhum jogador na sala!");
+            System.out.println("[ROOM " + roomCode + "] Nenhum jogador na sala!");
             return;
         }
 
-        System.out.println("[ROOM " + roomCode + "] 🎮 A iniciar jogo com " + players.size() + " jogadores.");
+        System.out.println("[ROOM " + roomCode + "] A iniciar jogo com " + players.size() + " jogadores.");
 
         // Criar equipas
         for (int i = 1; i <= numTeams; i++) {
@@ -101,9 +98,9 @@ public class GameRoom {
     public synchronized void authorizeStart() {
         if (!isGameRunning && players.size() == maxPlayers) {
             isReadyToStart = true;
-            System.out.println("[ROOM " + roomCode + "] ✅ Sala autorizada para começar!");
+            System.out.println("[ROOM " + roomCode + "] Sala autorizada para começar!");
         } else if (players.size() < maxPlayers) {
-            System.out.println("[ROOM " + roomCode + "] ❌ Nem todos os jogadores chegaram!");
+            System.out.println("[ROOM " + roomCode + "] Nem todos os jogadores chegaram!");
             System.out.println("[ROOM " + roomCode + "] Presentes: " + players.size() + "/" + maxPlayers);
         }
     }
