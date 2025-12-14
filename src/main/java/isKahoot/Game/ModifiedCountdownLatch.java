@@ -19,7 +19,7 @@ public class ModifiedCountdownLatch {
 
     }
 
-    //chamado por cada (ConnectionHandler) quando responde
+    //chamado por cada (DealWithClient) quando responde
     public synchronized int countdown (){
         if(timedOut || playersLeftToAnswer <0){
             return 0;

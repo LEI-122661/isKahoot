@@ -86,7 +86,9 @@ public class Client {
                 }
             }
         } catch (EOFException e) {
+            fecharJanelaClientes();
             System.out.println("[CLIENT " + username + "] Servidor fechou a conexão.");
+
         } catch (IOException e) {
             System.err.println("[CLIENT " + username + "] Erro na comunicação: " + e.getMessage());
         }
@@ -175,5 +177,17 @@ public class Client {
         } catch (IOException e) {
             System.err.println("[CLIENT " + username + "] Erro ao fechar conexão: " + e.getMessage());
         }
+    }
+
+
+    private void fecharJanelaClientes() {
+        System.out.println("[CLIENT] Conexão encerrada.");
+
+        javax.swing.JOptionPane.showMessageDialog(null,
+                "O Jogo Terminou!\nO servidor encerrou a conexão.",
+                "Fim de Jogo",
+                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+        System.exit(0);
     }
 }

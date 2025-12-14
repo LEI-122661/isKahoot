@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class GameHandler extends Thread {
 
-    private final List<ConnectionHandler> clients;
+    private final List<DealWithClient> clients;
     private final GameState gameState;
     private static final long QUESTION_TIMEOUT = 30000; // 30 segundos
 
@@ -22,7 +22,7 @@ public class GameHandler extends Thread {
      * @param clients lista de clientes conectados
      * @param gameState estado do jogo
      */
-    public GameHandler(List<ConnectionHandler> clients, GameState gameState) {
+    public GameHandler(List<DealWithClient> clients, GameState gameState) {
         this.clients = clients;
         this.gameState = gameState;
     }
@@ -165,7 +165,7 @@ public class GameHandler extends Thread {
 
 
     private void broadcast(String msg) {
-        for (ConnectionHandler ch : clients) {
+        for (DealWithClient ch : clients) {
             ch.sendMessage(msg);
         }
     }

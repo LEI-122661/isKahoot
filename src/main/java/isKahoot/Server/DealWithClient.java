@@ -12,7 +12,7 @@ import java.util.Map;
  * Thread que gere a comunicação com um cliente específico.
  * Recebe informações do cliente, atribui a uma equipa, e processa mensagens durante o jogo.
  */
-public class ConnectionHandler extends Thread {
+public class DealWithClient extends Thread {
 
     private final Socket connection;
     private final int clientId;
@@ -28,12 +28,12 @@ public class ConnectionHandler extends Thread {
     private String assignedTeamId;         // equipa atribuída (ex: "team1")
 
     /**
-     * Construtor do ConnectionHandler.
+     * Construtor do DealWithClient.
      *
      * @param connection socket da conexão com o cliente
      * @param clientId identificador sequencial do cliente
      */
-    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer) {
+    public DealWithClient(Socket connection, int clientId, GameServer gameServer) {
         this.connection = connection;
         this.clientId = clientId;
         this.gameServer = gameServer;
@@ -172,6 +172,10 @@ public class ConnectionHandler extends Thread {
         } catch (EOFException e) {
             System.out.println("[HANDLER " + username + "] Cliente desconectou normalmente.");
         } catch (IOException e) {
+            if(connection.isClosed()){
+                return;
+            }
+            //deu outro erro
             System.err.println("[HANDLER " + username + "] Erro na comunicação: " + e.getMessage());
         }
     }

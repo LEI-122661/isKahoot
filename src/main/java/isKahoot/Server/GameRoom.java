@@ -12,7 +12,7 @@ import java.util.*;
 public class GameRoom {
 
     private String roomCode;
-    private List<ConnectionHandler> players = new ArrayList<>();
+    private List<DealWithClient> players = new ArrayList<>();
     private Map<String, Team> teams = new HashMap<>();
     private GameState gameState;
     private boolean isGameRunning = false;
@@ -37,7 +37,7 @@ public class GameRoom {
     }
 
     // Adiciona um jogador à sala, retorna false se a sala está cheia ou o jogo já começou.
-    public synchronized boolean addPlayer(ConnectionHandler player) {
+    public synchronized boolean addPlayer(DealWithClient player) {
         if (isGameRunning) {
             return false;  // Jogo já começou
         }
@@ -82,7 +82,7 @@ public class GameRoom {
         // Criar GameState
         this.gameState = new GameState(questions, teams);
 
-        for (ConnectionHandler p : players) {
+        for (DealWithClient p : players) {
             p.setgameInfo(teams, gameState);
             p.assignToTeam();
         }
@@ -130,7 +130,7 @@ public class GameRoom {
         return players.size();
     }
 
-    public List<ConnectionHandler> getPlayers() {
+    public List<DealWithClient> getPlayers() {
         return new ArrayList<>(players);
     }
 

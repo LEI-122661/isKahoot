@@ -1,9 +1,8 @@
 package isKahoot.Server;
 
-import isKahoot.Game.GameState;
 import isKahoot.Game.Question;
 import isKahoot.Game.QuestionLoader;
-import isKahoot.Game.Team;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,7 +25,7 @@ public class GameServer {
     private Thread acceptanceThread;
     private int clientCounter = 0;  //ADICIONADO: Contador para IDs únicos
 
-    private final List<ConnectionHandler> allClients = new ArrayList<>();
+    private final List<DealWithClient> allClients = new ArrayList<>();
 
 
     public void createRoom(int numTeams, int numPlayersPerTeam) {
@@ -100,11 +99,11 @@ public class GameServer {
                 GameRoom sala = entry.getValue();
                 sb.append(sala.getStatus()).append("\n");
 
-                List<ConnectionHandler> players = sala.getPlayers();
+                List<DealWithClient> players = sala.getPlayers();
                 if (players.isEmpty()) {
                     sb.append("   (nenhum jogador)\n");
                 } else {
-                    for (ConnectionHandler jogador : players) {
+                    for (DealWithClient jogador : players) {
                         sb.append("   ✓ ").append(jogador.getUsername()).append("\n");
                     }
                 }
@@ -183,7 +182,7 @@ public class GameServer {
                 while (acceptingClients) {
                     Socket clientSocket = server.accept();
                     //CORRIGIDO: Passar 3 parâmetros corretos
-                    ConnectionHandler handler = new ConnectionHandler(clientSocket, ++clientCounter, this);
+                    DealWithClient handler = new DealWithClient(clientSocket, ++clientCounter, this);
                     synchronized (allClients){
                         allClients.add(handler);
                     }
@@ -226,7 +225,7 @@ public class GameServer {
             }
             // faltava desconectar clinetes!!
             synchronized (allClients) {
-                for (ConnectionHandler client : allClients) {
+                for (DealWithClient client : allClients) {
                     client.closeConnection();
                 }
                 allClients.clear();
