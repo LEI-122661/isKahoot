@@ -34,13 +34,7 @@ public class Team implements Serializable {
         this.ready = false;
     }
 
-    /**
-     * Adiciona um jogador à equipa.
-     * Máximo 2 jogadores por equipa.
-     *
-     * @param playerName nome do jogador
-     * @return true se foi adicionado com sucesso, false caso contrário
-     */
+
     public synchronized boolean addPlayer(String playerName) {
         Objects.requireNonNull(playerName, "playerName não pode ser null");
 
@@ -59,12 +53,9 @@ public class Team implements Serializable {
         return true;
     }
 
-    /**
-     * Remove um jogador da equipa.
-     *
-     * @param playerName nome do jogador
-     * @return true se foi removido com sucesso
-     */
+
+
+    // true or false conforme falha ou nao
     public synchronized boolean removePlayer(String playerName) {
         boolean removed = players.remove(playerName);
         if (removed) {
@@ -77,12 +68,12 @@ public class Team implements Serializable {
         return players.contains(playerName);
     }
 
-    /**
-     * Retorna a lista de jogadores (cópia imutável).
-     * @return lista de nomes dos jogadores
-     */
+
+
+
     public synchronized List<String> getPlayers() {
-        return Collections.unmodifiableList(new ArrayList<>(players));
+        return new ArrayList<>(players);
+
     }
 
 
@@ -133,65 +124,53 @@ public class Team implements Serializable {
         this.roundScore = 0;
     }
 
-    /**
-     * Marca a equipa como pronta para jogar.
-     */
-    public synchronized void setReady(boolean ready) {
+
+
+
+
+    public void setReady(boolean ready) {
         this.ready = ready;
     }
 
-    /**
-     * Verifica se a equipa está pronta.
-     *
-     * @return true se pronta
-     */
-    public synchronized boolean isReady() {
+
+
+
+    public boolean isReady() {
         return ready;
     }
 
-    /**
-     * Verifica se a equipa está completa (todos 2 jogadores presentes).
-     *
-     * @return true se a equipa tem 2 jogadores
-     */
-    public synchronized boolean isFull() {
+
+
+
+    public boolean isFull() {
         return players.size() == MAX_PLAYERS;
     }
 
-    /**
-     * Retorna o identificador da equipa.
-     *
-     * @return teamId
-     */
+
+
+
     public String getTeamId() {
         return teamId;
     }
 
-    /**
-     * Retorna o nome da equipa.
-     *
-     * @return teamName
-     */
+
+
+
     public String getTeamName() {
         return teamName;
     }
 
-    /**
-     * Retorna representação em String da equipa.
-     *
-     * @return formato: "TeamName (2/2 players) - Score: 150"
-     */
+
+
+
     @Override
     public synchronized String toString() {
         return teamName + " (" + players.size() + "/" + MAX_PLAYERS + " players) - Total Score: " + totalScore + " | Round: " + roundScore;
     }
 
-    /**
-     * Compara duas equipas pelo seu ID.
-     *
-     * @param o outro objeto
-     * @return true se os IDs são iguais
-     */
+
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -200,11 +179,8 @@ public class Team implements Serializable {
         return teamId.equals(team.teamId);
     }
 
-    /**
-     * HashCode baseado no teamId.
-     *
-     * @return hash
-     */
+
+
     @Override
     public int hashCode() {
         return Objects.hash(teamId);

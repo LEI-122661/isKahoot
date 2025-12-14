@@ -75,7 +75,7 @@ public class GameServer {
             return;
         }
         // Autoriza e inicia
-        room.authorizeStart();
+        room.autorizeStart();
         room.startGame();
         System.out.println("[SERVER] ✅ 🎮 Jogo iniciado na sala " + roomCode);
     }
@@ -88,9 +88,7 @@ public class GameServer {
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append("\n╔════════════════════════════════════════════╗\n");
-            sb.append("║         📊 SALAS ATIVAS                   ║\n");
-            sb.append("╚════════════════════════════════════════════╝\n");
+            sb.append("\n--- SALAS ATIVAS -------------------------\n");
 
             for (Map.Entry<String, GameRoom> entry : activeRooms.entrySet()) {
                 GameRoom sala = entry.getValue();
@@ -101,7 +99,7 @@ public class GameServer {
                     sb.append("   (nenhum jogador)\n");
                 } else {
                     for (DealWithClient jogador : players) {
-                        sb.append("   ✓ ").append(jogador.getUsername()).append("\n");
+                        sb.append("   -> ").append(jogador.getUsername()).append("\n");
                     }
                 }
                 sb.append("\n");

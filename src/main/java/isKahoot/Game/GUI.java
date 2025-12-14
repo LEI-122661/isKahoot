@@ -6,9 +6,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-/**
- * GUI melhorada e minimalista para o IsKahoot.
- */
+
 public class GUI extends JFrame {
 
     // Cards / telas

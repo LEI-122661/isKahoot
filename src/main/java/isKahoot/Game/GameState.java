@@ -2,10 +2,8 @@ package isKahoot.Game;
 
 import java.util.*;
 
-/**
- * GameState representa o estado de um jogo IsKahoot.
- * Armazena perguntas, equipas, respostas da ronda atual e lógica de pontuação.
- */
+//GameState representa o estado de um jogo //
+ //Armazena perguntas, equipas, respostas da ronda atual e logica de pontuação.
 public class GameState {
 
     private final List<Question> questions;
