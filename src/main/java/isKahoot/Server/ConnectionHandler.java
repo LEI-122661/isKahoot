@@ -229,7 +229,7 @@ public class ConnectionHandler extends Thread {
     /**
      * Fecha a conexão com o cliente.
      */
-    private void closeConnection() {
+    public void closeConnection() {
         try {
             // Remove o jogador da equipa
             if (assignedTeamId != null && teams!=null && teams.containsKey(assignedTeamId)) {

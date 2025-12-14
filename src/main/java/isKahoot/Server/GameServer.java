@@ -26,21 +26,21 @@ public class GameServer {
     private Thread acceptanceThread;
     private int clientCounter = 0;  //ADICIONADO: Contador para IDs únicos
 
-    /**
-     * Cria uma nova sala de jogo.
-     */
+    private final List<ConnectionHandler> allClients = new ArrayList<>();
+
+
     public void createRoom(int numTeams, int numPlayersPerTeam) {
         String roomCode = generateRoomCode();
         String path = findQuizzesFile();
 
         if (path == null) {
-            System.err.println("[SERVER] ❌ ERRO: Ficheiro quizzes.json não encontrado!");
+            System.err.println("[SERVER] ERRO: Ficheiro quizzes.json não encontrado!");
             return;
         }
 
         List<Question> questions = QuestionLoader.loadFromJson(path);
         if (questions.isEmpty()) {
-            System.out.println("[SERVER] ❌ Erro: Ficheiro sem perguntas.");
+            System.out.println("[SERVER] Erro: Ficheiro sem perguntas.");
             return;
         }
 
@@ -67,7 +67,7 @@ public class GameServer {
         }
 
         if (room == null) {
-            System.out.println("[SERVER] ❌ Erro: Sala com código " + roomCode + " não existe.");
+            System.out.println("[SERVER]  Erro: Sala com código " + roomCode + " não existe.");
             return;
         }
 
@@ -84,13 +84,11 @@ public class GameServer {
         System.out.println("[SERVER] ✅ 🎮 Jogo iniciado na sala " + roomCode);
     }
 
-    /**
-     * ⭐ MELHORADO: Lista salas com melhor formatação.
-     */
+    //alteracao, para ficar mais bonito :)
     public String listRooms() {
         synchronized (activeRooms) {
             if (activeRooms.isEmpty()) {
-                return "ℹ️  Nenhuma sala ativa.";
+                return " Nenhuma sala ativa.";
             }
 
             StringBuilder sb = new StringBuilder();
@@ -117,18 +115,14 @@ public class GameServer {
         }
     }
 
-    /**
-     * Obtém uma sala pelo código.
-     */
+    //Obtem uma sala pelo room code
     public GameRoom getRoom(String roomCode) {
         synchronized (activeRooms) {
             return activeRooms.get(roomCode);
         }
     }
 
-    /**
-     * Gera um código único para a sala.
-     */
+
     private String generateRoomCode() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random rnd = new Random();
@@ -146,9 +140,7 @@ public class GameServer {
         return sb.toString();
     }
 
-    /**
-     * Inicia o servidor.
-     */
+    // comecar servidor
     public void runServer() {
         try {
             System.out.println("[SERVER] Carregando perguntas...");
@@ -181,9 +173,7 @@ public class GameServer {
         }
     }
 
-    /**
-     * Começa a aceitar clientes para uma sala específica.
-     */
+
     private void startAcceptingClients() {
         if (acceptingClients) return;
 
@@ -194,6 +184,9 @@ public class GameServer {
                     Socket clientSocket = server.accept();
                     //CORRIGIDO: Passar 3 parâmetros corretos
                     ConnectionHandler handler = new ConnectionHandler(clientSocket, ++clientCounter, this);
+                    synchronized (allClients){
+                        allClients.add(handler);
+                    }
                     new Thread(handler).start();
                 }
             } catch (IOException e) {
@@ -205,9 +198,7 @@ public class GameServer {
         acceptanceThread.start();
     }
 
-    /**
-     * Encontra o ficheiro quizzes.json em vários locais.
-     */
+    //Encontra o ficheiro quizzes.json em vários locais.
     private String findQuizzesFile() {
         String[] possiblePaths = {
                 "isKahoot/resources/quizzes.json",
@@ -224,23 +215,31 @@ public class GameServer {
         return null;
     }
 
-    /**
-     * Encerra o servidor.
-     */
+
+
+
     public void closeServer() {
         acceptingClients = false;
         try {
-            if (server != null) server.close();
-            System.out.println("[SERVER] 🛑 Servidor encerrado.");
+            if (server != null) {
+                server.close();
+            }
+            // faltava desconectar clinetes!!
+            synchronized (allClients) {
+                for (ConnectionHandler client : allClients) {
+                    client.closeConnection();
+                }
+                allClients.clear();
+            }
+            System.out.println("[SERVER] Servidor encerrado e todos os clientes desconetados.");
             System.exit(0);
         } catch (IOException e) {
             System.err.println("[SERVER] Erro ao encerrar servidor: " + e.getMessage());
         }
     }
 
-    /**
-     * Ponto de entrada do servidor.
-     */
+
+    // MAIN!!
     public static void main(String[] args) {
         GameServer server = new GameServer();
         server.runServer();
