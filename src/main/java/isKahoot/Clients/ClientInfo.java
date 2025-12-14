@@ -2,10 +2,9 @@ package isKahoot.Clients;
 
 import java.io.Serializable;
 
-/**
- * Informações do cliente ao conectar-se ao servidor.
- * Serializable para enviar via ObjectStreams.
- */
+  //Informações do cliente ao conectar-se ao servidor.
+  //Serializable para enviar via ObjectStreams.
+
 public class ClientInfo implements Serializable {
     
     private static final long serialVersionUID = 1L;
@@ -14,13 +13,7 @@ public class ClientInfo implements Serializable {
     private String gameCode;      // código do jogo (futuramente)
     private String teamId;        // ID da equipa (ex: "team1", "team2")
     
-    /**
-     * Construtor com informações básicas.
-     *
-     * @param username nome do jogador
-     * @param gameCode código do jogo (pode ser null para agora)
-     * @param teamId   ID da equipa solicitada (pode ser null, servidor atribui)
-     */
+
     public ClientInfo(String username, String gameCode, String teamId) {
         this.username = username;
         this.gameCode = gameCode;

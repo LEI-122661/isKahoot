@@ -13,11 +13,8 @@ public class Client {
     private GUI gui;
     private String username;
     private String teamID;
-    /**
-     * Inicia o cliente com um username específico.
-     *
-     * @param username nome do jogador (ex: "Client1", "Client2")
-     */
+
+    //Inicia o client com um username especifico, temos classes dos nossos clientes
     public void runClient(String username, String teamID) {
         this.username = username;
         this.teamID = teamID;
@@ -25,7 +22,7 @@ public class Client {
         try {
             connectToServer();
             setStreams();
-            sendClientInfo(); // Envia informações ao servidor
+            sendClientInfo(); // Envia informações ao server
             createGUI();
             processConnection();
         } catch (IOException e) {
@@ -36,9 +33,6 @@ public class Client {
         }
     }
 
-    /**
-     * Conecta ao servidor (localhost:12025).
-     */
     private void connectToServer() throws IOException {
         InetAddress endereco = InetAddress.getByName("localhost"); // localhost
         System.out.println("[CLIENT " + username + "] Conectando a: " + endereco + ":12025");
@@ -46,40 +40,34 @@ public class Client {
         System.out.println("[CLIENT " + username + "] Conectado com sucesso!");
     }
 
-    /**
-     * Inicializa os streams de comunicação.
-     * IMPORTANTE: Cria ObjectOutputStream ANTES de ObjectInputStream para evitar deadlock!
-     */
+
+     //inicializa os streams de comunicação, cria ObjectOutputStream ANTES de ObjectInputStream para evitar deadlock!!!
+
     private void setStreams() throws IOException {
         out = new ObjectOutputStream(connection.getOutputStream());
-        out.flush(); // CRÍTICO, para enviar dados, sem isto servidor fica a espera do cabecalho ineterno de outputstream e nunca cria o InputStream
+        out.flush(); //  !! para enviar dados, sem isto servidor fica a espera do cabecalho ineterno de outputstream e nunca cria o InputStream
         in = new ObjectInputStream(connection.getInputStream());
         System.out.println("[CLIENT " + username + "] Streams inicializados.");
     }
 
-    /**
-     * Envia informações do cliente ao servidor.
-     * O servidor usa isto para auto-atribuir o jogador a uma equipa.
-     */
+
+    //envia informacoess do cliente ao servidor
     private void sendClientInfo() throws IOException {
-        // --- NOVO: Perguntar o código da sala ao utilizador ---
-        java.util.Scanner scanner = new java.util.Scanner(System.in);
+
+        // NOVO: Perguntar o código da sala ao user
+        java.util.Scanner scanner =new java.util.Scanner(System.in);
         System.out.print(">> Insere o CÓDIGO DA SALA (dado pelo servidor): ");
         String code = scanner.nextLine().trim().toUpperCase();
 
         ClientInfo info = new ClientInfo(username, code, teamID);
-        // nome: "ClientX" nome do user
-        // gameCode: "ABCD" código da sala
-        // teamID: "EquipaX" nome da equipa
+        // nome: "ClientX" nome do user,teamID: "EquipaX" nome da equipa
+
         out.writeObject(info);  //serializa e envia o objeto ClientInfo por connction
         out.flush();            //enviar informacoes
         System.out.println("[CLIENT " + username + "] Informações enviadas: " + info);
     }
 
-    /**
-     * Processa mensagens do servidor.
-     * Bloqueia à espera de mensagens até o servidor encerrar a conexão.
-     */
+     //Processa mensagens do servidor, bloqueia a espera de msgs até o servidor encerrar a conexão
     private void processConnection() {
         try {
             while (true) {
@@ -98,15 +86,15 @@ public class Client {
                 }
             }
         } catch (EOFException e) {
+            fecharJanelaClientes();
             System.out.println("[CLIENT " + username + "] Servidor fechou a conexão.");
+
         } catch (IOException e) {
             System.err.println("[CLIENT " + username + "] Erro na comunicação: " + e.getMessage());
         }
     }
 
-    /**
-     * Interpreta mensagens recebidas do servidor e atualiza a GUI.
-     */
+    //interpreta mensagens recebidas do servidor e atualiza a GUI
     private void handleServerMessage(String msg) {
         if (msg.startsWith("SCREEN:LOBBY")) {
             System.out.println("[CLIENT " + username + "] Mostrando LOBBY");
@@ -117,7 +105,7 @@ public class Client {
             String[] parts = payload.split("\\|");  // usamos // para dizer que queremos o caractere | mesmo, pois | é especial em regex
             //Se msg era "SCREEN:QUESTION:O que é?|A|B|C|D|30", o payload fica "O que é?|A|B|C|D|30".
 
-            if (parts.length >= 6) {  // pergunta + 4 opções
+            if (parts.length >= 6) {  // pergunta + 4 opções + tempo
                 String questionText = parts[0];
                 String[] opts = new String[]{parts[1], parts[2], parts[3], parts[4]};
                 int seconds;
@@ -154,15 +142,13 @@ public class Client {
         }
     }
 
-    /**
-     * Cria a GUI do jogo.
-     */
+    // cria GUI!!
     private void createGUI() {
-        javax.swing.SwingUtilities.invokeLater(() -> {  //Coloca a criação da janela na fila de espera da Thread do Swing (EDT) e executa quando for seguro
+        javax.swing.SwingUtilities.invokeLater(() -> {  //Coloca a criação da janela na fila de espera da Thread do Swing,executa quando for seguro
             gui = new GUI();
-            gui.setTitle("IsKahoot - " + username); // título com nome do cliente
+            gui.setTitle("IsKahoot - " + username); // title com nome do user, janela personalizada
 
-            // Callback para enviar resposta
+            // enviar resposta
             gui.setAnswerSender(selectedIndex -> {
                 try {
                     out.writeObject("ANSWER:" + selectedIndex);
@@ -172,21 +158,10 @@ public class Client {
                 }
             });
 
-            // Callback para avançar para próxima pergunta
-            gui.setNextSender(() -> {
-                try {
-                    out.writeObject("NEXT");
-                    out.flush();
-                } catch (IOException e) {
-                    System.err.println("[CLIENT " + username + "] Erro ao enviar NEXT: " + e.getMessage());
-                }
-            });
         });
     }
 
-    /**
-     * Fecha a conexão.
-     */
+    // fecha connection
     public void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {
@@ -202,5 +177,17 @@ public class Client {
         } catch (IOException e) {
             System.err.println("[CLIENT " + username + "] Erro ao fechar conexão: " + e.getMessage());
         }
+    }
+
+
+    private void fecharJanelaClientes() {
+        System.out.println("[CLIENT] Conexão encerrada.");
+
+        javax.swing.JOptionPane.showMessageDialog(null,
+                "O Jogo Terminou!\nO servidor encerrou a conexão.",
+                "Fim de Jogo",
+                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+        System.exit(0);
     }
 }

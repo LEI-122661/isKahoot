@@ -8,11 +8,10 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 
-/**
- * Thread que gere a comunicação com um cliente específico.
- * Recebe informações do cliente, atribui a uma equipa, e processa mensagens durante o jogo.
- */
-public class ConnectionHandler extends Thread {
+ //Thread que gere a comunicação com um cliente especifico
+ //Recebe informações do cliente, atribui a uma equipa, e processa mensagens durante o jogo.
+
+public class DealWithClient extends Thread {
 
     private final Socket connection;
     private final int clientId;
@@ -27,19 +26,17 @@ public class ConnectionHandler extends Thread {
     private String username;               // nome do jogador (ex: "Client1")
     private String assignedTeamId;         // equipa atribuída (ex: "team1")
 
-    /**
-     * Construtor do ConnectionHandler.
-     *
-     * @param connection socket da conexão com o cliente
-     * @param clientId identificador sequencial do cliente
-     */
-    public ConnectionHandler(Socket connection, int clientId, GameServer gameServer) {
+
+
+    public DealWithClient(Socket connection, int clientId, GameServer gameServer) {
         this.connection = connection;
         this.clientId = clientId;
         this.gameServer = gameServer;
         this.username = "Client" + clientId; // default
         this.assignedTeamId = null; // será atribuído após receber ClientInfo
     }
+
+
 
     public void setgameInfo(Map<String, Team> teams, GameState gameState) {
         this.teams=teams;
@@ -51,7 +48,7 @@ public class ConnectionHandler extends Thread {
         try {
             setStreams();
 
-            ClientInfo infoClient = receiveClientInfo();      // Recebe e processa informações do cliente
+            ClientInfo infoClient = recieveClientInfo();      // Recebe e processa informações do cliente
             if(infoClient == null){
                 return;
             }
@@ -65,7 +62,7 @@ public class ConnectionHandler extends Thread {
                     System.out.println("[HANDLER] " + username + " entrou na sala " + code);
                     sendMessage("SCREEN:LOBBY");
 
-                    processConnection();
+                    processMessages();
                 } else {
                     sendMessage("ERROR:Jogo já começou");
                 }
@@ -80,10 +77,8 @@ public class ConnectionHandler extends Thread {
         }
     }
 
-    /**
-     * Inicializa os streams de comunicação.
-     * CRÍTICO: Criar ObjectOutputStream ANTES de ObjectInputStream!
-     */
+    //Inicializa os streams de comunicação
+     // IMPORTANTE criar ObjectOutputStream ANTES das OUT
     private void setStreams() throws IOException {
         out = new ObjectOutputStream(connection.getOutputStream());
         out.flush(); // CRÍTICO!
@@ -92,11 +87,8 @@ public class ConnectionHandler extends Thread {
     }
 
 
-    /**
-     * Recebe as informações do cliente (ClientInfo).
-     * O cliente envia isto logo após conectar.
-     */
-    private ClientInfo receiveClientInfo() throws IOException {
+    //recebe infos do cliente, manda apos conectar
+    private ClientInfo recieveClientInfo() throws IOException {
         try {
             Object obj = in.readObject();
             if (obj instanceof ClientInfo) {
@@ -113,36 +105,34 @@ public class ConnectionHandler extends Thread {
         return null;
     }
 
-    /**
-     * Atribui automaticamente o cliente a uma equipa disponível.
-     * Procura pela primeira equipa que tem menos de 2 jogadores. */
+
 
     public void assignToTeam() {
         if(teams == null) return;
         synchronized (teams) {
-            // REGRA 1: teamId DEVE ser não-null
+            // teamId DEVE ser não-null
             if (requestedTeamId == null || requestedTeamId.equals("null")) {
                 System.out.println("[HANDLER] " + username + " rejeitado: teamId é obrigatório!");
                 sendMessage("ERROR:teamId obrigatório para entrar");
-                return;  // ❌ REJEITA - Não entra!
+                return;
             }
 
-            // REGRA 2: Equipa tem de existir
+            // Equipa tem de existir
             if (!teams.containsKey(requestedTeamId)) {
                 System.out.println("[HANDLER] " + username + " rejeitado: equipa '" + requestedTeamId + "' não existe!");
                 sendMessage("ERROR:Equipa inválida: " + requestedTeamId);
-                return;  // ❌ REJEITA
+                return;
             }
 
-            // REGRA 3: Equipa tem de ter espaço (máximo 2)
+            // Equipa tem de ter espaço (máximo 2)
             Team team = teams.get(requestedTeamId);
             if (team.getPlayerCount() >= 2) {
                 System.out.println("[HANDLER] " + username + " rejeitado: equipa '" + requestedTeamId + "' está cheia (2/2)!");
                 sendMessage("ERROR:Equipa cheia: " + requestedTeamId);
-                return;  // ❌ REJEITA
+                return;
             }
 
-            // TUDO OK: Adiciona à equipa
+            // se tudo certo adiciona
             if (team.addPlayer(username)) {
                 this.assignedTeamId = requestedTeamId;
                 System.out.println("[HANDLER] " + username + " atribuído à equipa: " + requestedTeamId);
@@ -153,10 +143,8 @@ public class ConnectionHandler extends Thread {
 
 
 
-    /**
-     * Processa mensagens do cliente durante o jogo.
-     */
-    private void processConnection() {
+
+    private void processMessages() {
         try {
             while (!Thread.interrupted()) {
                 try {
@@ -174,31 +162,35 @@ public class ConnectionHandler extends Thread {
         } catch (EOFException e) {
             System.out.println("[HANDLER " + username + "] Cliente desconectou normalmente.");
         } catch (IOException e) {
+            if(connection.isClosed()){
+                return;
+            }
+            //deu outro erro
             System.err.println("[HANDLER " + username + "] Erro na comunicação: " + e.getMessage());
         }
     }
 
-    /**
-     * Trata mensagens recebidas do cliente.
-     * Exemplos: "ANSWER:2", "NEXT", etc.
-     */
+
+
+    //Trata mensagens recebidas do cliente
+     //Exemplos: "ANSWER:2", "NEXT", etc
     private void handleClientMessage(String msg) {
         if (msg.startsWith("ANSWER:")) {
             if(gameState!=null){
-                String answerStr = msg.substring("ANSWER:".length());
+                String answerStr =msg.substring("ANSWER:".length());
                 try {
                     int optionIndex = Integer.parseInt(answerStr);
                     System.out.println("[HANDLER " + username + "] Resposta recebida: opção " + optionIndex);
 
                     // Registar resposta no GameState
-                    boolean accepted = gameState.receiveAnswer(username, optionIndex);
+                    boolean accepted= gameState.recieveAnswer(username, optionIndex);
                     if (accepted) {
                         System.out.println("[HANDLER " + username + "] Resposta aceite!");
                     } else {
-                        System.out.println("[HANDLER " + username + "] Resposta rejeitada (já respondeu ou ronda terminou)");
+                        System.out.println("[HANDLER " +username+ "] Resposta rejeitada (já respondeu ou ronda terminou)");
                     }
                 } catch (NumberFormatException e) {
-                    System.err.println("[HANDLER " + username + "] Opção inválida: " + answerStr);
+                    System.err.println("[HANDLER " +username + "] Opção inválida: " + answerStr);
                 }
             }
 
@@ -214,10 +206,7 @@ public class ConnectionHandler extends Thread {
         }
     }
 
-    /**
-     * Envia uma mensagem ao cliente.
-     * Thread-safe.
-     */
+    //Envia uma mensagem ao cliente, Thread-safe
     public synchronized void sendMessage(String msg) {
         try {
             out.writeObject(msg);
@@ -228,20 +217,18 @@ public class ConnectionHandler extends Thread {
         }
     }
 
-    /**
-     * Fecha a conexão com o cliente.
-     */
-    private void closeConnection() {
+
+    public void closeConnection() {
         try {
             // Remove o jogador da equipa
             if (assignedTeamId != null && teams!=null && teams.containsKey(assignedTeamId)) {
                 teams.get(assignedTeamId).removePlayer(username);
             }
 
-            if (connection != null && !connection.isClosed()) {
+            if (connection !=null && !connection.isClosed()) {
                 connection.close();
             }
-            if (in != null) {
+            if (in !=null) {
                 in.close();
             }
             if (out != null) {
@@ -253,16 +240,13 @@ public class ConnectionHandler extends Thread {
         }
     }
 
-    /**
-     * Retorna o nome do jogador.
-     */
+
     public String getUsername() {
         return username;
     }
 
-    /**
-     * Retorna a equipa atribuída.
-     */
+
+
     public String getAssignedTeamId() {
         return assignedTeamId;
     }

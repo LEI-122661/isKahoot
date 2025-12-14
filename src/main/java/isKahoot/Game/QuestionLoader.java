@@ -8,9 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * Carrega perguntas do ficheiro quizzes.json.
- */
+//Carrega perguntas do ficheiro quizzes.json.
+
 public class QuestionLoader {
 
     private static final Gson gson = new Gson();
@@ -33,7 +32,7 @@ public class QuestionLoader {
 
             for (int i = 0; i < questionsArray.size(); i++) {
                 // Converte cada objeto JSON para Question usando Gson
-                Question question = gson.fromJson(questionsArray.get(i), Question.class);
+                Question question = gson.fromJson(questionsArray.get(i), Question.class); //no json tem de ter mesmo nome uqe na classe
                 questions.add(question);
             }
 

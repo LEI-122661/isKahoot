@@ -2,13 +2,10 @@ package isKahoot.Clients.Test1;
 
 import isKahoot.Clients.Client;
 
-/**
- * Cliente 1 do jogo IsKahoot.
- * Conecta ao servidor com username "Client1".
- */
+
 public class Client1 {
     public static void main(String[] args) {
         Client client = new Client();
-        client.runClient("Client1", "Equipa1"); // auto-atribui a "Client1"
+        client.runClient("Client1", "Equipa1");
     }
 }
