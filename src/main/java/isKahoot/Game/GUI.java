@@ -45,6 +45,10 @@ public class GUI extends JFrame {
     private static final Color BG_COLOR = new Color(245, 245, 247);          // Cinzento muito claro
     private static final Color TEXT_COLOR = new Color(40, 40, 50);           // Cinzento escuro
 
+    public interface AnswerSender { //interface para enviar respostas
+        void sendAnswer(int optionIndex);
+    }
+
     public GUI() {
         setTitle("IsKahoot");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
