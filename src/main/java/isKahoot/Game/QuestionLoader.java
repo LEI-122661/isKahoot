@@ -14,12 +14,7 @@ public class QuestionLoader {
 
     private static final Gson gson = new Gson();
 
-    /**
-     * Carrega perguntas do ficheiro quizzes.json.
-     *
-     * @param filename nome do ficheiro (ex: "quizzes.json")
-     * @return lista de perguntas carregadas
-     */
+
     public static List<Question> loadFromJson(String filename) {
         try {
             String content = new String(Files.readAllBytes(Paths.get(filename)));

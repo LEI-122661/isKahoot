@@ -2,10 +2,7 @@ package isKahoot.Server;
 
 import java.util.Scanner;
 
-/**
- * TUI - Terminal User Interface para o servidor IsKahoot.
- * Permite criar salas, listar salas ativas, e controlar o jogo através de comandos.
- */
+
 public class TUI {
 
     private final GameServer gameServer;
@@ -14,10 +11,7 @@ public class TUI {
         this.gameServer = gameServer;
     }
 
-    /**
-     * Inicia a interface textual do servidor.
-     * O utilizador pode inserir comandos para controlar o jogo.
-     */
+
     public void start() {
         Scanner scanner = new Scanner(System.in);
 
@@ -60,21 +54,18 @@ public class TUI {
                         return;
 
                     default:
-                        System.out.println("❌ Comando desconhecido. Digite 'help' para ver os comandos disponíveis.");
+                        System.out.println(" Comando desconhecido. Digite 'help' para ver os comandos disponiveis.");
                 }
             } catch (Exception e) {
-                System.out.println("❌ Erro ao processar comando: " + e.getMessage());
+                System.out.println(" Erro ao processar comando: " + e.getMessage());
             }
         }
     }
 
-    /**
-     * Processa o comando CREATE.
-     * Sintaxe: create <numEquipas> <numJogadoresPerEquipa>
-     */
+
     private void handleCreate(String[] parts) {
         if (parts.length < 3) {
-            System.out.println("❌ Erro: faltam argumentos.");
+            System.out.println("   Erro: faltam argumentos.");
             System.out.println("   Sintaxe: create <numEquipas> <numJogadoresPerEquipa>");
             System.out.println("   Exemplo: create 2 2");
             return;
@@ -85,37 +76,27 @@ public class TUI {
             int numJogadores = Integer.parseInt(parts[2]);
 
             if (numEquipas <= 0 || numJogadores <= 0) {
-                System.out.println("❌ Erro: números devem ser maiores que 0.");
+                System.out.println(" Erro: números devem ser maiores que 0.");
                 return;
             }
 
             gameServer.createRoom(numEquipas, numJogadores);
 
         } catch (NumberFormatException e) {
-            System.out.println("❌ Erro: argumentos devem ser números inteiros.");
+            System.out.println(" Erro: argumentos devem ser números inteiros.");
         }
     }
 
-    /**
-     * Processa o comando LIST.
-     * Mostra todas as salas ativas.
-     */
+
     private void handleList() {
         String roomList = gameServer.listRooms();
-        if (roomList.equals("Nenhuma sala ativa.")) {
-            System.out.println("ℹ️  " + roomList);
-        } else {
-            System.out.println(roomList);
-        }
+        System.out.println(roomList);
     }
 
-    /**
-     * Processa o comando START.
-     * Sintaxe: start <codigoSala>
-     */
+
     private void handleStart(String[] parts) {
         if (parts.length < 2) {
-            System.out.println("❌ Erro: faltam argumentos.");
+            System.out.println(" Erro: faltam argumentos.");
             System.out.println("   Sintaxe: start <codigoSala>");
             return;
         }
@@ -124,12 +105,9 @@ public class TUI {
         gameServer.startGame(code);
     }
 
-    /**
-     * Processa o comando EXIT.
-     * Encerra o servidor.
-     */
+
     private void handleExit(Scanner scanner) {
-        System.out.println("⚠️  Tens a certeza que queres encerrar o servidor? (s/n)");
+        System.out.println(" Tens a certeza que queres encerrar o servidor? (s/n)");
         System.out.print("> ");
         String confirm = scanner.nextLine().trim().toLowerCase();
 
@@ -141,19 +119,15 @@ public class TUI {
         }
     }
 
-    /**
-     * Imprime o banner do servidor.
-     */
+
     private void printBanner() {
         System.out.println("\n  IsKahoot ");
         System.out.println("    para ajuda com comandos, digite 'help'\n");
     }
 
-    /**
-     * Imprime a ajuda com os comandos disponíveis.
-     */
+
     private void printHelp() {
-        System.out.println("\n📋 Comandos disponíveis:");
+        System.out.println("\n-> Comandos disponíveis:");
 
         System.out.println("  create <numEquipas> <numJogadores>");
         System.out.println("    → Cria uma nova sala com o número especificado de equipas e jogadores");

@@ -95,7 +95,7 @@ public class GameRoom {
     }
 
 
-    public synchronized void authorizeStart() {
+    public synchronized void autorizeStart() {
         if (!isGameRunning && players.size() == maxPlayers) {
             isReadyToStart = true;
             System.out.println("[ROOM " + roomCode + "] Sala autorizada para começar!");
@@ -117,7 +117,7 @@ public class GameRoom {
 
 
     public synchronized String getStatus() {
-        String status = isGameRunning ? "🎮 Em curso" : "⏸️ Aguardando";
+        String status = isGameRunning ? "🎮 Em curso" : " Aguardando";
         return "[" + roomCode + "] " + status + " (" + players.size() + "/" + maxPlayers + " jogadores)";
     }
 

@@ -107,7 +107,7 @@ public class Client {
 
             if (parts.length >= 6) {  // pergunta + 4 opções + tempo
                 String questionText = parts[0];
-                String[] opts = new String[]{parts[1], parts[2], parts[3], parts[4]};
+                String[] opts =new String[]{parts[1], parts[2], parts[3], parts[4]};
                 int seconds;
                 try {
                     seconds = Integer.parseInt(parts[5]);
@@ -175,7 +175,7 @@ public class Client {
             }
             System.out.println("[CLIENT " + username + "] Conexão fechada.");
         } catch (IOException e) {
-            System.err.println("[CLIENT " + username + "] Erro ao fechar conexão: " + e.getMessage());
+            System.err.println("[CLIENT " + username+ "] Erro ao fechar conexão: " + e.getMessage());
         }
     }
 
